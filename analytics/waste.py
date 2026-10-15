@@ -63,43 +63,40 @@ def build_waste_features(
         jobs = schedule.copy()
         jobs["start_ts"] = pd.to_datetime(jobs.start_ts)
         jobs["end_ts"] = pd.to_datetime(jobs.end_ts)
-        required_machine_sets = jobs.required_machines.map(lambda value: set(str(value).split(",")))
-        for row_ix, row in rows.iterrows():
+        for equipment_id, indices in rows.groupby("equipment_id", sort=False).groups.items():
             equipment_jobs = jobs[
-                required_machine_sets.map(
-                    lambda values, equipment_id=row.equipment_id: equipment_id in values
+                jobs.required_machines.astype(str).map(
+                    lambda value, name=equipment_id: name in value.split(",")
                 )
             ]
             if equipment_jobs.empty:
                 continue
-            active = (equipment_jobs.start_ts <= row.timestamp) & (
-                equipment_jobs.end_ts > row.timestamp
+            timestamps = pd.DatetimeIndex(rows.loc[indices, "timestamp"])
+            active = np.zeros(len(timestamps), dtype=bool)
+            for job in equipment_jobs.itertuples():
+                active |= (timestamps >= job.start_ts) & (timestamps < job.end_ts)
+            rows.loc[indices, "scheduled_active"] = active
+
+            starts = pd.DatetimeIndex(equipment_jobs.start_ts.sort_values())
+            offsets = starts.as_unit("ns").asi8
+            at = timestamps.as_unit("ns").asi8
+            positions = offsets.searchsorted(at, side="left")
+            has_next = positions < len(offsets)
+            next_use = np.full(len(timestamps), np.inf)
+            next_use[has_next] = np.maximum(
+                0.0, (offsets[positions[has_next]] - at[has_next]) / 60_000_000_000
             )
-            rows.at[row_ix, "scheduled_active"] = bool(active.any())
-            future = equipment_jobs.loc[equipment_jobs.start_ts >= row.timestamp, "start_ts"]
-            if not future.empty:
-                rows.at[row_ix, "scheduled_use_next_min"] = max(
-                    0.0, (future.min() - row.timestamp).total_seconds() / 60
-                )
+            rows.loc[indices, "scheduled_use_next_min"] = next_use
     rows["idle_duration_min"] = 0
     for _, indices in rows.groupby("equipment_id", sort=False).groups.items():
-        current = 0
-        prior_timestamp = None
-        prior_state = None
-        for index in indices:
-            timestamp = rows.at[index, "timestamp"]
-            state = rows.at[index, "state"]
-            contiguous = (
-                prior_timestamp is not None
-                and (timestamp - prior_timestamp).total_seconds() <= 60.1
-            )
-            current = (
-                current + 1
-                if state == "IDLE" and prior_state == "IDLE" and contiguous
-                else (1 if state == "IDLE" else 0)
-            )
-            rows.at[index, "idle_duration_min"] = current
-            prior_timestamp, prior_state = timestamp, state
+        group = rows.loc[indices]
+        changes = group.state.ne(group.state.shift()) | (
+            group.timestamp.diff().dt.total_seconds().gt(60.1)
+        )
+        run_ids = changes.cumsum()
+        duration = group.groupby(run_ids, sort=False).cumcount().to_numpy() + 1
+        duration[group.state.to_numpy() != "IDLE"] = 0
+        rows.loc[indices, "idle_duration_min"] = duration
     return rows
 
 

@@ -18,6 +18,8 @@ data/clips/normalized/
 models/
 reports/analytics/
 reports/optimizer/
+results/campaign_data/
+results/analytics/
 demo_cache/
 *.sqlite3
 .env

@@ -1,5 +1,6 @@
 """Minute-resolution ground-truth plant and independent physical parameters."""
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
@@ -9,7 +10,7 @@ import numpy as np
 import pandas as pd
 import yaml
 
-from contracts.models import EquipmentState
+from contracts.models import ControlAction, ControlCommand, EquipmentState
 from plant.schedule import generate_schedule
 from plant.state_machine import MachineState
 
@@ -37,6 +38,7 @@ class PlantRun:
     cv_events: pd.DataFrame
     components_minute: pd.DataFrame
     physical_parameters: dict[str, float]
+    command_outcomes: list[dict[str, Any]]
 
 
 def load_facility(path: str | Path) -> dict[str, Any]:
@@ -98,8 +100,9 @@ def simulate_day(
     scenario: dict[str, Any] | None = None,
     anomaly_types: list[str] | None = None,
     cv_mode: str = "simulated",
+    controls: Iterable[ControlCommand] | None = None,
 ) -> PlantRun:
-    """Simulate one synthetic day from plant truth, with seed-isolated CV errors."""
+    """Simulate a seeded day; optional commands are applied by plant truth."""
     if cv_mode not in {"oracle", "simulated"}:
         raise ValueError(
             "cv_mode must be 'oracle' or 'simulated' until the Phase 4 video pipeline exists"
@@ -109,6 +112,7 @@ def simulate_day(
     label_rng = np.random.default_rng(np.random.SeedSequence([seed, 1777]))
     cv_rng = np.random.default_rng(np.random.SeedSequence([seed, 2819]))
     weather_rng = np.random.default_rng(np.random.SeedSequence([seed, 3931]))
+    command_rng = np.random.default_rng(np.random.SeedSequence([seed, 9847]))
     labels = _label_anomalies(day, anomaly_types or [], label_rng)
     schedule = generate_schedule(
         day,
@@ -123,6 +127,34 @@ def simulate_day(
 
     machines = facility["machines"]
     by_id = {machine["id"]: machine for machine in machines}
+    machine_ids = [machine["id"] for machine in machines]
+    stochastic = {
+        machine_id: np.random.default_rng(np.random.SeedSequence([seed, 13_001, index]))
+        for index, machine_id in enumerate(machine_ids)
+    }
+    run_innovations = {
+        machine_id: stochastic[machine_id].normal(0.0, 0.04, size=1440)
+        for machine_id in machine_ids
+    }
+    compressor_duty = {
+        machine_id: stochastic[machine_id].uniform(0.6, 0.9, size=1440)
+        for machine_id in machine_ids
+    }
+    compressor_leak_noise = {
+        machine_id: stochastic[machine_id].uniform(0.15, 0.25, size=1440)
+        for machine_id in machine_ids
+    }
+    degradation_noise = {
+        machine_id: stochastic[machine_id].uniform(0.08, 0.15, size=1440)
+        for machine_id in machine_ids
+    }
+    sensor_noise = {
+        machine_id: stochastic[machine_id].normal(0.0, 0.005, size=1440)
+        for machine_id in machine_ids
+    }
+    meter_noise = np.random.default_rng(np.random.SeedSequence([seed, 45_129])).normal(
+        0.0, 0.002, size=1440
+    )
     true_params: dict[str, float] = {}
     for machine in machines:
         for name in ("p_run_kw", "p_idle_kw", "p_standby_kw"):
@@ -144,6 +176,28 @@ def simulate_day(
         periods=1440,
         freq="min",
     )
+    command_outcomes: list[dict[str, Any]] = []
+    command_intervals: list[tuple[int, int, ControlCommand]] = []
+    for command in controls or ():
+        issued_minute = int((pd.Timestamp(command.issued_at) - timestamps[0]).total_seconds() // 60)
+        latency = int(command_rng.integers(1, 3))
+        failed = bool(command_rng.random() < 0.02)
+        effective_minute = issued_minute + latency
+        finish_minute = effective_minute + (command.duration_min or 1440)
+        if not failed:
+            command_intervals.append((effective_minute, finish_minute, command))
+        command_outcomes.append(
+            {
+                "command_id": command.command_id,
+                "action": command.action.value,
+                "equipment_id": command.equipment_id,
+                "issued_minute": issued_minute,
+                "effective_minute": effective_minute,
+                "latency_min": latency,
+                "failed": failed,
+                "executed": False,
+            }
+        )
     machine_states = {machine["id"]: MachineState() for machine in machines}
     ar_load = {machine["id"]: 0.0 for machine in machines}
     outdoor = np.empty(1440, dtype=float)
@@ -228,6 +282,22 @@ def simulate_day(
                 if minute >= row.start_minute and row.equipment_id in desired:
                     desired[row.equipment_id] = EquipmentState.IDLE
 
+        active_controls = [
+            command for start, end, command in command_intervals if start <= minute < end
+        ]
+        active_command_ids = {command.command_id for command in active_controls}
+        for outcome in command_outcomes:
+            if outcome["command_id"] in active_command_ids:
+                outcome["executed"] = True
+        for command in active_controls:
+            if command.action in {ControlAction.STANDBY, ControlAction.PRE_WARM}:
+                if command.equipment_id in desired:
+                    desired[command.equipment_id] = (
+                        EquipmentState.STANDBY
+                        if command.action == ControlAction.STANDBY
+                        else EquipmentState.RUNNING
+                    )
+
         actual: dict[str, EquipmentState] = {}
         for machine in machines:
             machine_id = machine["id"]
@@ -269,11 +339,13 @@ def simulate_day(
             elif state == EquipmentState.IDLE:
                 watts = true_params[f"{machine_id}.p_idle_kw"]
             elif state == EquipmentState.RUNNING:
-                ar_load[machine_id] = 0.85 * ar_load[machine_id] + plant_rng.normal(0, 0.04)
+                ar_load[machine_id] = (
+                    0.85 * ar_load[machine_id] + run_innovations[machine_id][minute]
+                )
                 if machine_id == "C2":
-                    duty = float(plant_rng.uniform(0.6, 0.9)) if consumers else 0.0
+                    duty = float(compressor_duty[machine_id][minute]) if consumers else 0.0
                     if event_active("compressor_leak", "C2", minute):
-                        duty = min(1.0, duty + float(plant_rng.uniform(0.15, 0.25)))
+                        duty = min(1.0, duty + float(compressor_leak_noise[machine_id][minute]))
                     watts = (
                         duty * true_params[f"{machine_id}.p_run_kw"]
                         + (1 - duty) * true_params[f"{machine_id}.p_idle_kw"]
@@ -281,7 +353,7 @@ def simulate_day(
                 else:
                     watts = true_params[f"{machine_id}.p_run_kw"] * (1 + ar_load[machine_id])
                     if event_active("bearing_degradation", machine_id, minute):
-                        watts *= 1 + float(plant_rng.uniform(0.08, 0.15))
+                        watts *= 1 + float(degradation_noise[machine_id][minute])
             else:
                 watts = 0.0
             machine_kw[machine_id][minute] = max(0.0, watts)
@@ -290,7 +362,12 @@ def simulate_day(
         for zone in facility["lighting"]["zones"]:
             baseline_on = 5 * 60 + 30 <= minute < 22 * 60 + 30
             forced = event_active("lights_left_on", zone, minute)
-            if baseline_on or forced:
+            zone_off = any(
+                command.action == ControlAction.LIGHTS_OFF
+                and command.equipment_id in {"LIGHTS", f"LIGHTS:{zone}"}
+                for command in active_controls
+            )
+            if (baseline_on or forced) and not zone_off:
                 zone_power += float(facility["lighting"]["power_kw_each"])
         lighting_kw[minute] = zone_power
 
@@ -298,6 +375,13 @@ def simulate_day(
         hvac_on = 5 * 60 <= minute < 23 * 60
         overcool = event_active("hvac_overcool", "HVAC", minute)
         setpoint = 21.0 if overcool else float(hvac["setpoint_c"])
+        setbacks = [
+            command
+            for command in active_controls
+            if command.action == ControlAction.HVAC_SETBACK and command.equipment_id == "HVAC"
+        ]
+        if setbacks:
+            setpoint += max(command.setpoint_delta_c or 2.0 for command in setbacks)
         cop = float(np.clip(4.0 - 0.07 * (outdoor[minute] - 25), 2.0, 4.5))
         if hvac_on and temp_c > setpoint:
             thermal_kw = min(
@@ -329,7 +413,7 @@ def simulate_day(
             state = machine_state[machine_id][minute]
             has_submeter = bool(machine.get("submetered", False))
             observed = (
-                machine_kw[machine_id][minute] * (1 + plant_rng.normal(0, 0.005))
+                machine_kw[machine_id][minute] * (1 + sensor_noise[machine_id][minute])
                 if has_submeter
                 else np.nan
             )
@@ -370,7 +454,9 @@ def simulate_day(
             "main_meter_true_kw": actual_total,
         }
     )
-    components["main_meter_kw"] = actual_total * (1 + plant_rng.normal(0, 0.002, size=1440))
+    components["main_meter_kw"] = actual_total * (1 + meter_noise)
+    for machine_id, values in machine_frame.items():
+        components[f"machine:{machine_id}_kw"] = values.to_numpy()
     minute_frame = components.set_index("timestamp")
     agg = (
         minute_frame[
@@ -445,4 +531,5 @@ def simulate_day(
         cv_events=pd.DataFrame(cv_rows),
         components_minute=components,
         physical_parameters=true_params,
+        command_outcomes=command_outcomes,
     )

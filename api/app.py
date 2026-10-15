@@ -151,9 +151,9 @@ def create_app(service: APIService | None = None) -> FastAPI:
                         paused = bool(command.get("value", True))
                     elif kind == "speed":
                         value = int(command.get("value", 1))
-                        if value not in {1, 10, 60}:
+                        if value not in {1, 10, 30, 60}:
                             await websocket.send_json(
-                                {"type": "error", "detail": "speed must be 1, 10, or 60"}
+                                {"type": "error", "detail": "speed must be 1, 10, 30, or 60"}
                             )
                         else:
                             speed = value

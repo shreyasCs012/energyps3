@@ -3,7 +3,7 @@ from datetime import date
 import numpy as np
 import pytest
 
-from contracts.models import EquipmentState
+from contracts.models import ControlAction, ControlCommand, EquipmentState
 from plant.generate import _choose_anomalies
 from plant.simulator import load_facility, simulate_day
 from plant.state_machine import MachineState, is_legal_transition
@@ -111,6 +111,34 @@ def test_seeded_true_parameters_are_within_nameplate_bounds(facility):
         0.9 * facility["hvac"]["ua_w_per_k"]
         <= run.physical_parameters["hvac.ua_w_per_k"]
         <= 1.1 * facility["hvac"]["ua_w_per_k"]
+    )
+
+
+def test_plant_executes_delayed_controls_with_paired_random_streams(facility):
+    from datetime import datetime
+
+    command = ControlCommand(
+        command_id="test-lights-off",
+        issued_at=datetime.fromisoformat("2025-01-05T06:00:00+05:30"),
+        equipment_id="LIGHTS:Z1",
+        action=ControlAction.LIGHTS_OFF,
+        duration_min=60,
+        rationale="paired control replay test",
+    )
+    baseline = simulate_day(date(2025, 1, 5), 71, facility, cv_mode="oracle")
+    controlled = simulate_day(date(2025, 1, 5), 71, facility, cv_mode="oracle", controls=[command])
+    outcome = controlled.command_outcomes[0]
+    assert outcome["latency_min"] in {1, 2}
+    assert outcome["failed"] is False
+    assert outcome["executed"] is True
+    assert (
+        controlled.components_minute.lighting_kw.sum()
+        < baseline.components_minute.lighting_kw.sum()
+    )
+    # Unaffected machine load innovations are identical across paired runs.
+    np.testing.assert_array_equal(
+        controlled.components_minute["machine:CNC-01_kw"],
+        baseline.components_minute["machine:CNC-01_kw"],
     )
 
 

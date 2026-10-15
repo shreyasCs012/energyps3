@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -130,6 +132,29 @@ def test_websocket_replay_supports_pause_seek_and_streams_observables(client):
 def test_run_rejects_unknown_scenario(client):
     response = client.post("/run", json={"scenario": "unknown", "days": 1})
     assert response.status_code == 422
+
+
+def test_precomputed_demo_responses_are_read_from_cache(tmp_path):
+    data = tmp_path / "demo" / "data"
+    cache = tmp_path / "demo" / "responses"
+    cache.mkdir(parents=True)
+    data.mkdir(parents=True)
+    manifest = {
+        "scenario": "S2",
+        "seed": 42,
+        "days": 1,
+        "cv_mode": "simulated",
+        "synthetic": True,
+    }
+    (data / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (tmp_path / "demo" / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (cache / "scenarios.json").write_text('[{"id":"cached"}]', encoding="utf-8")
+    service = APIService(data, tmp_path / "reports")
+    assert service.scenarios() == [{"id": "cached"}]
+    (data / "manifest.json").write_text(
+        json.dumps({**manifest, "scenario": "S1"}), encoding="utf-8"
+    )
+    assert {item["id"] for item in service.scenarios()} == {"S1", "S2", "S3", "S4"}
 
 
 def test_what_if_rejects_unknown_equipment(client):

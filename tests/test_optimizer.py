@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -143,15 +144,19 @@ def test_constraint_checker_never_standbys_compressor_with_active_consumer(machi
     )
     now = pd.Timestamp(base_snapshot.timestamp)
     candidate = _Candidate("C2", ControlAction.STANDBY, now, 60)
-    for seed in range(200):
+    rng = np.random.default_rng(2025)
+    active_states = (EquipmentState.RUNNING, EquipmentState.WARMUP)
+    for _ in range(200):
+        active_machine = str(rng.choice(("CNC-02", "HP1")))
+        active_state = active_states[int(rng.integers(0, len(active_states)))]
         snapshot = TwinSnapshot(
             timestamp=base_snapshot.timestamp,
             machine_states={
                 **base_snapshot.machine_states,
-                "CNC-02": EquipmentState.RUNNING,
+                active_machine: active_state,
             },
             machine_power_kw=dict(base_snapshot.machine_power_kw),
-            state_age_min={name: seed + 1 for name in machines},
+            state_age_min={name: int(rng.integers(1, 1441)) for name in machines},
         )
         checks = check_constraints(
             candidate,

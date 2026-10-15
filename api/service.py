@@ -32,6 +32,7 @@ class APIService:
     ) -> None:
         self.data_dir = Path(data_dir)
         self.report_dir = Path(report_dir)
+        self.response_cache_dir = self.data_dir.parent / "responses"
         self.active_data_dir = self.data_dir
         self.decisions: dict[str, dict[str, Any]] = {}
         self._plan_cache: dict[str, Any] | None = None
@@ -39,7 +40,26 @@ class APIService:
         self.scenario_path = Path("config/scenarios.yaml")
         self.tariff_path = Path("config/tariff.yaml")
 
+    def _cached_response(self, name: str) -> Any | None:
+        cache_manifest_path = self.response_cache_dir.parent / "manifest.json"
+        active_manifest = self._manifest()
+        if not cache_manifest_path.is_file() or not active_manifest:
+            return None
+        cache_manifest = json.loads(cache_manifest_path.read_text(encoding="utf-8"))
+        if any(
+            cache_manifest.get(key) != active_manifest.get(key)
+            for key in ("scenario", "seed", "days", "cv_mode")
+        ):
+            return None
+        path = self.response_cache_dir / f"{name}.json"
+        if not path.is_file():
+            return None
+        return json.loads(path.read_text(encoding="utf-8"))
+
     def scenarios(self) -> list[dict[str, Any]]:
+        cached = self._cached_response("scenarios")
+        if cached is not None:
+            return cached
         config = yaml.safe_load(self.scenario_path.read_text(encoding="utf-8"))
         return [
             {"id": key, "name": value.get("name", key), "parameters": value}
@@ -47,6 +67,9 @@ class APIService:
         ]
 
     def tariff(self) -> dict[str, Any]:
+        cached = self._cached_response("tariff")
+        if cached is not None:
+            return cached
         config = yaml.safe_load(self.tariff_path.read_text(encoding="utf-8"))
         return {
             "currency": config.get("currency", "INR"),
@@ -132,6 +155,9 @@ class APIService:
         return estimates, facility, machines
 
     def kpis(self, selected: date | None = None) -> KPIResponse:
+        cached = self._cached_response("kpis") if selected is None else None
+        if cached is not None:
+            return KPIResponse(**cached)
         observations = self._daily_observations(selected)
         meter = observations["meter"].sort_values("interval_start")
         tariff = yaml.safe_load(self.tariff_path.read_text(encoding="utf-8"))
@@ -303,6 +329,9 @@ class APIService:
     def forecast(self, horizon_steps: int = 4) -> dict[str, Any]:
         if not 1 <= horizon_steps <= 24:
             raise ValueError("horizon_steps must be between 1 and 24 (up to six hours)")
+        cached = self._cached_response("forecast") if horizon_steps == 24 else None
+        if cached is not None:
+            return cached
         meter = self._table("main_meter_15min").sort_values("interval_start")
         if len(meter) < 4:
             raise ValueError("at least four meter intervals are needed for a forecast")
@@ -320,6 +349,13 @@ class APIService:
     def anomalies(self, threshold_kw: float = 35.0, selected: date | None = None) -> dict[str, Any]:
         if threshold_kw <= 0:
             raise ValueError("threshold_kw must be positive")
+        cached = (
+            self._cached_response("anomalies")
+            if selected is None and threshold_kw == 35.0
+            else None
+        )
+        if cached is not None:
+            return cached
         observations = self._daily_observations(selected)
         alerts = threshold_alerts(observations["meter"], threshold_kw)
         events = alerts.loc[alerts.is_anomaly]
@@ -338,6 +374,9 @@ class APIService:
         }
 
     def cv_events(self, selected: date | None = None, limit: int = 1000) -> dict[str, Any]:
+        cached = self._cached_response("cv_events") if selected is None and limit == 1000 else None
+        if cached is not None:
+            return cached
         frame = self._table("cv_events")
         if selected:
             frame = self._day(frame, "timestamp", selected)
@@ -359,6 +398,9 @@ class APIService:
         }
 
     def recommendations(self, mode: str = "human") -> dict[str, Any]:
+        cached_response = self._cached_response("recommendations") if mode == "human" else None
+        if cached_response is not None:
+            return {**cached_response, "decisions": list(self.decisions.values())}
         if self._plan_cache is not None and self._plan_cache.get("mode") == mode:
             plan = self._plan_cache
         else:
@@ -368,13 +410,28 @@ class APIService:
             scenario = manifest.get("scenario", "S1")
             target = self.report_dir / "recommendations.json"
             target.parent.mkdir(parents=True, exist_ok=True)
-            self._plan_cache = build_plan(
-                self.active_data_dir,
-                moment.isoformat(),
-                target,
-                mode=mode,
-                scenario_name=scenario,
+            cached = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
+            cache_matches = all(
+                cached.get(name) == manifest.get(name)
+                for name in ("scenario", "seed", "days", "cv_mode")
             )
+            if cache_matches and cached.get("mode") == mode:
+                self._plan_cache = cached
+            else:
+                self._plan_cache = build_plan(
+                    self.active_data_dir,
+                    moment.isoformat(),
+                    target,
+                    mode=mode,
+                    scenario_name=scenario,
+                )
+                self._plan_cache.update(
+                    scenario=manifest.get("scenario", scenario),
+                    seed=manifest.get("seed"),
+                    days=manifest.get("days"),
+                    cv_mode=manifest.get("cv_mode"),
+                )
+                target.write_text(json.dumps(self._plan_cache, indent=2) + "\n", encoding="utf-8")
             plan = self._plan_cache
         return {
             **plan,
@@ -403,6 +460,9 @@ class APIService:
         return {**self.decisions[recommendation_id], "message": messages[status]}
 
     def report(self) -> dict[str, Any]:
+        cached = self._cached_response("report")
+        if cached is not None:
+            return cached
         kpis = self.kpis().model_dump(mode="json")
         results = {"synthetic": True, "scenario": self._manifest().get("scenario"), "kpis": kpis}
         return {"markdown": generate_report(results), "synthetic": True}

@@ -1,4 +1,4 @@
-.PHONY: setup data train eval optimize explain report render cv demo test lint format schema clean
+.PHONY: setup data train eval eval-analytics optimize explain report render cv demo demo-cache test lint format schema clean
 
 setup:
 	python -m pip install -e ".[dev,api,cv]"
@@ -10,6 +10,9 @@ train:
 	python -m analytics.train --input data/generated --output models/analytics.joblib --config config/facility.yaml
 
 eval:
+	python -m eval.campaign --output results --scenarios S1 S2 S3 S4 --seeds 20 --optimizer-seeds 3
+
+eval-analytics:
 	python -m eval.run --input data/generated --output reports/analytics --config config/facility.yaml
 
 optimize:
@@ -28,7 +31,10 @@ cv:
 	python -m cv.ingest_clips --manifest data/clips/manifest.csv
 
 demo:
-	uvicorn api.app:app --host 127.0.0.1 --port 8000
+	python -m api.demo
+
+demo-cache:
+	python -m api.demo_cache
 
 test:
 	python -m pytest

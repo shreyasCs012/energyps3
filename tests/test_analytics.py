@@ -12,6 +12,7 @@ from analytics.anomaly import (
 )
 from analytics.forecast import build_forecast_features, walk_forward_evaluate
 from analytics.waste import (
+    build_waste_features,
     classify_waste,
     evaluate_root_cause_classifier,
     fit_root_cause_classifier,
@@ -111,6 +112,32 @@ def test_idle_waste_rule_requires_sustained_idle_and_no_nearby_job():
     result = classify_waste(estimates, pd.DataFrame(), parameters)
     assert result.root_cause.iloc[:10].eq("normal").all()
     assert result.root_cause.iloc[10:].eq("idle_waste").all()
+
+
+def test_waste_features_vectorize_schedule_windows_and_idle_runs():
+    timestamp = pd.date_range("2025-01-01 08:00", periods=6, freq="min", tz="UTC")
+    estimates = pd.DataFrame(
+        {
+            "timestamp": timestamp,
+            "equipment_id": ["M1"] * len(timestamp),
+            "state": ["IDLE", "IDLE", "OFF", "IDLE", "IDLE", "IDLE"],
+            "power_kw_estimate": [2.0] * len(timestamp),
+        }
+    )
+    schedule = pd.DataFrame(
+        [
+            {
+                "start_ts": timestamp[2],
+                "end_ts": timestamp[4],
+                "required_machines": "M1",
+            }
+        ]
+    )
+    parameters = {"M1": MachineParameters("M1", 6.5, 2.2, 0.4, 8, 0.6, 10, 5)}
+    features = build_waste_features(estimates, schedule, parameters)
+    assert features.scheduled_active.tolist() == [False, False, True, True, False, False]
+    assert features.scheduled_use_next_min.tolist() == [2.0, 1.0, 0.0, np.inf, np.inf, np.inf]
+    assert features.idle_duration_min.tolist() == [1, 2, 0, 1, 2, 3]
 
 
 def test_root_cause_random_forest_handles_unbounded_schedule_gap_feature():
