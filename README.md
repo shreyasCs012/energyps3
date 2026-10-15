@@ -4,7 +4,7 @@ EnergySense Twin is an offline-first prototype for exploring industrial energy w
 
 ## Project status
 
-Phase 0 scaffold is in place. Plant simulation, calibration, analytics, CV, optimization, API, dashboard, and evaluation are planned phases and are not implemented yet.
+Phases 0 and 1 are implemented. The ground-truth plant, seeded schedule/weather/anomaly generation, and Parquet data pipeline are available. The digital twin, calibration, analytics, real-video CV, optimization, API, dashboard, and evaluation are planned phases and are not implemented yet.
 
 ## Principles
 
@@ -20,11 +20,14 @@ Requires Python 3.11 or newer.
 
 ```sh
 make setup
+make data
 make test
 make schema
 ```
 
-Targets for `make data`, `make train`, `make eval`, and `make demo` are scaffolding until their corresponding phases are implemented.
+`make data` generates the configured 70-day synthetic dataset into `data/generated/` using seed 42 and simulated CV events. Override options with `python -m plant.generate --help`. `make train`, `make eval`, and `make demo` remain future-phase targets.
+
+The plant data keeps meter readings for non-submetered equipment unavailable. `state_true` and `operator_present_true` are retained as evaluation-only fields; downstream twin input code must explicitly exclude them.
 
 ## Configuration
 
@@ -38,5 +41,5 @@ make format
 make test
 ```
 
-See [docs/phase_0.md](docs/phase_0.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
+See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
 
