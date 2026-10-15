@@ -109,8 +109,15 @@ def simulate(
         machine_id: state.machine_states.get(machine_id, EquipmentState.OFF)
         for machine_id in machines
     }
-    state_age = dict.fromkeys(machines, 0)
-    powered_age = dict.fromkeys(machines, 0)
+    state_age = {
+        machine_id: max(0, int(state.state_age_min.get(machine_id, 0))) for machine_id in machines
+    }
+    powered_age = {
+        machine_id: state_age[machine_id]
+        if states[machine_id] not in {EquipmentState.OFF, EquipmentState.STANDBY}
+        else 0
+        for machine_id in machines
+    }
     warmup_age = dict.fromkeys(machines, 0)
     started = {
         machine_id: states[machine_id] not in {EquipmentState.OFF, EquipmentState.STANDBY}
@@ -129,9 +136,6 @@ def simulate(
     violations: list[str] = []
     temp_capacity_kwh_per_k = float(facility["hvac"]["thermal_capacity_mj_per_k"]) / 3.6
     ua_kw_per_k = float(facility["hvac"]["ua_w_per_k"]) / 1000.0
-    lighting_total = float(facility["lighting"]["power_kw_each"]) * len(
-        facility["lighting"]["zones"]
-    )
     base_kw = float(facility["facility"]["base_load_kw"])
     outdoor_mean = float(scenario.get("weather_mean_c", 30.0))
     shift_end = int(scenario.get("shift_end_hour", 22))
@@ -273,11 +277,26 @@ def simulate(
             elif timestamp >= pd.Timestamp(job.due_ts):
                 late_jobs.add(key)
 
-        lights_off = any(
-            command.action == ControlAction.LIGHTS_OFF
-            for command in _active_command(commands, "LIGHTS", timestamp)
+        lighting_zones = list(facility["lighting"].get("zones", []))
+        off_zones = {
+            command.equipment_id.removeprefix("LIGHTS:")
+            for command in commands
+            if command.action == ControlAction.LIGHTS_OFF
+            and command.issued_at <= timestamp.to_pydatetime()
+            and (
+                command.duration_min is None
+                or timestamp
+                < pd.Timestamp(command.issued_at) + pd.Timedelta(minutes=command.duration_min)
+            )
+        }
+        if "LIGHTS" in off_zones:
+            off_zones = set(lighting_zones)
+        lights_kw = (
+            float(facility["lighting"]["power_kw_each"])
+            * sum(zone not in off_zones for zone in lighting_zones)
+            if 330 <= minute_of_day < 1350
+            else 0.0
         )
-        lights_kw = 0.0 if lights_off else (lighting_total if 330 <= minute_of_day < 1350 else 0.0)
         people = min(3, len(active_jobs))
         hvac = facility["hvac"]
         setpoint = float(hvac["setpoint_c"])
@@ -287,7 +306,7 @@ def simulate(
             if command.action == ControlAction.HVAC_SETBACK
         ]
         if setback:
-            setpoint += 2.0
+            setpoint += max(command.setpoint_delta_c or 2.0 for command in setback)
         outdoor = outdoor_mean + 6.0 * np.sin(2 * np.pi * ((minute_of_day / 60.0) - 9.0) / 24.0)
         cop = float(np.clip(4.0 - 0.07 * (outdoor - 25.0), 2.0, 4.5))
         hvac_on = 5 * 60 <= minute_of_day < 23 * 60
@@ -378,7 +397,9 @@ def simulate_ensemble(
                     for value in EquipmentState
                     if value not in {EquipmentState.MAINTENANCE, EquipmentState.FAULT}
                 ]
-                uncertain_states[equipment_id] = uncertainty_rng.choice(choices)
+                uncertain_states[equipment_id] = choices[
+                    int(uncertainty_rng.integers(len(choices)))
+                ]
         scenario_copy = dict(scenario or {})
         scenario_copy["weather_mean_c"] = float(scenario_copy.get("weather_mean_c", 30.0)) + float(
             uncertainty_rng.normal(0.0, float(scenario_copy.get("forecast_error_c", 0.7)))
@@ -390,6 +411,7 @@ def simulate_ensemble(
             temperature_c=state.temperature_c,
             occupied=state.occupied,
             confidence=dict(state.confidence),
+            state_age_min=dict(state.state_age_min),
         )
         runs.append(simulate(perturbed, schedule, controls, horizon_min, scenario_copy, seed))
     kpi_names = tuple(type(runs[0].kpis).model_fields)

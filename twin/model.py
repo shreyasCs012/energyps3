@@ -28,6 +28,7 @@ class TwinSnapshot:
     temperature_c: float = 24.0
     occupied: bool = False
     confidence: dict[str, float] = field(default_factory=dict)
+    state_age_min: dict[str, int] = field(default_factory=dict)
 
 
 @dataclass

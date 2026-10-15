@@ -11,5 +11,5 @@ machines:
   - {id: CV1, type: conveyor, p_run_kw: 1.5, p_idle_kw: 1.1, p_standby_kw: 0.1, warmup_min: 0, restart_kwh: 0.02, min_off_min: 2, min_on_min: 1, submetered: false}
   - {id: HP1, type: press, p_run_kw: 11.0, p_idle_kw: 3.5, p_standby_kw: 0.6, warmup_min: 20, restart_kwh: 1.8, min_off_min: 15, min_on_min: 10, needs: [C2], submetered: true}
 hvac: {setpoint_c: 24, thermal_cap_kw: 30, fan_kw: 1.5, thermal_capacity_mj_per_k: 18, ua_w_per_k: 900}
-lighting: {zones: [Z1, Z2, Z3], power_kw_each: 1.4, baseline_on: "05:30-22:30"}
+lighting: {zones: [Z1, Z2, Z3], machine_zones: {CNC-01: Z1, CNC-02: Z1, C2: Z2, HP1: Z2, CV1: Z3}, power_kw_each: 1.4, baseline_on: "05:30-22:30"}
 

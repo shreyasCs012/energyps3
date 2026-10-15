@@ -16,6 +16,7 @@ export interface ControlCommand {
   action: ControlAction;
   duration_min: number | null;
   rationale: string;
+  setpoint_delta_c: number | null;
 }
 export interface KPISet {
   energy_kwh: number;
@@ -31,4 +32,32 @@ export interface KPIComparison {
   predicted: KPISet;
   realized: KPISet;
   absolute_error: Record<string, number>;
+}
+export interface RecommendationImpact {
+  energy_kwh: number;
+  cost_inr: number;
+  co2_kg: number;
+  peak_kw: number;
+  late_jobs: number;
+}
+export interface RecommendationConstraint { rule: string; passed: boolean; detail: string; }
+export interface Recommendation {
+  id: string;
+  ts: string;
+  equipment: string;
+  action: ControlAction;
+  action_parameters: Record<string, number | string>;
+  start: string;
+  duration_min: number;
+  projected: RecommendationImpact;
+  interval: { p05: RecommendationImpact; p95: RecommendationImpact };
+  constraints: RecommendationConstraint[];
+  confidence: number;
+  evidence: Record<string, unknown>;
+  revert_if: string[];
+}
+export interface RecommendationPlan {
+  mode: 'human' | 'auto';
+  recommendations: Recommendation[];
+  rejected: Record<string, unknown>[];
 }

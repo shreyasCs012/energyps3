@@ -1,0 +1,218 @@
+{
+  "$defs": {
+    "ControlAction": {
+      "enum": [
+        "STANDBY",
+        "PRE_WARM",
+        "LIGHTS_OFF",
+        "HVAC_SETBACK",
+        "DEFER_JOB"
+      ],
+      "title": "ControlAction",
+      "type": "string"
+    },
+    "Recommendation": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "ts": {
+          "format": "date-time",
+          "title": "Ts",
+          "type": "string"
+        },
+        "equipment": {
+          "minLength": 1,
+          "title": "Equipment",
+          "type": "string"
+        },
+        "action": {
+          "$ref": "#/$defs/ControlAction"
+        },
+        "action_parameters": {
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "title": "Action Parameters",
+          "type": "object"
+        },
+        "start": {
+          "format": "date-time",
+          "title": "Start",
+          "type": "string"
+        },
+        "duration_min": {
+          "minimum": 1,
+          "title": "Duration Min",
+          "type": "integer"
+        },
+        "projected": {
+          "$ref": "#/$defs/RecommendationImpact"
+        },
+        "interval": {
+          "$ref": "#/$defs/RecommendationInterval"
+        },
+        "constraints": {
+          "items": {
+            "$ref": "#/$defs/RecommendationConstraint"
+          },
+          "title": "Constraints",
+          "type": "array"
+        },
+        "confidence": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence": {
+          "additionalProperties": true,
+          "title": "Evidence",
+          "type": "object"
+        },
+        "revert_if": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Revert If",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "ts",
+        "equipment",
+        "action",
+        "start",
+        "duration_min",
+        "projected",
+        "interval",
+        "constraints",
+        "confidence",
+        "evidence",
+        "revert_if"
+      ],
+      "title": "Recommendation",
+      "type": "object"
+    },
+    "RecommendationConstraint": {
+      "additionalProperties": false,
+      "properties": {
+        "rule": {
+          "minLength": 1,
+          "title": "Rule",
+          "type": "string"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "passed",
+        "detail"
+      ],
+      "title": "RecommendationConstraint",
+      "type": "object"
+    },
+    "RecommendationImpact": {
+      "additionalProperties": false,
+      "properties": {
+        "energy_kwh": {
+          "title": "Energy Kwh",
+          "type": "number"
+        },
+        "cost_inr": {
+          "title": "Cost Inr",
+          "type": "number"
+        },
+        "co2_kg": {
+          "title": "Co2 Kg",
+          "type": "number"
+        },
+        "peak_kw": {
+          "title": "Peak Kw",
+          "type": "number"
+        },
+        "late_jobs": {
+          "title": "Late Jobs",
+          "type": "number"
+        }
+      },
+      "required": [
+        "energy_kwh",
+        "cost_inr",
+        "co2_kg",
+        "peak_kw",
+        "late_jobs"
+      ],
+      "title": "RecommendationImpact",
+      "type": "object"
+    },
+    "RecommendationInterval": {
+      "additionalProperties": false,
+      "properties": {
+        "p05": {
+          "$ref": "#/$defs/RecommendationImpact"
+        },
+        "p95": {
+          "$ref": "#/$defs/RecommendationImpact"
+        }
+      },
+      "required": [
+        "p05",
+        "p95"
+      ],
+      "title": "RecommendationInterval",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "mode": {
+      "enum": [
+        "human",
+        "auto"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "recommendations": {
+      "items": {
+        "$ref": "#/$defs/Recommendation"
+      },
+      "title": "Recommendations",
+      "type": "array"
+    },
+    "rejected": {
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Rejected",
+      "type": "array"
+    }
+  },
+  "required": [
+    "mode",
+    "recommendations",
+    "rejected"
+  ],
+  "title": "RecommendationPlan",
+  "type": "object"
+}

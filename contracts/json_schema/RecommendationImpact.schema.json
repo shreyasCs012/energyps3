@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "energy_kwh": {
+      "title": "Energy Kwh",
+      "type": "number"
+    },
+    "cost_inr": {
+      "title": "Cost Inr",
+      "type": "number"
+    },
+    "co2_kg": {
+      "title": "Co2 Kg",
+      "type": "number"
+    },
+    "peak_kw": {
+      "title": "Peak Kw",
+      "type": "number"
+    },
+    "late_jobs": {
+      "title": "Late Jobs",
+      "type": "number"
+    }
+  },
+  "required": [
+    "energy_kwh",
+    "cost_inr",
+    "co2_kg",
+    "peak_kw",
+    "late_jobs"
+  ],
+  "title": "RecommendationImpact",
+  "type": "object"
+}

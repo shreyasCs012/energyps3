@@ -17,6 +17,7 @@ data/generated/*
 data/clips/normalized/
 models/
 reports/analytics/
+reports/optimizer/
 demo_cache/
 *.sqlite3
 .env

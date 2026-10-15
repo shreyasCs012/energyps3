@@ -3,7 +3,18 @@
 import json
 from pathlib import Path
 
-from contracts.models import ControlCommand, EquipmentState, KPIComparison, KPISet, TelemetryPoint
+from contracts.models import (
+    ControlCommand,
+    EquipmentState,
+    KPIComparison,
+    KPISet,
+    Recommendation,
+    RecommendationConstraint,
+    RecommendationImpact,
+    RecommendationInterval,
+    RecommendationPlan,
+    TelemetryPoint,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_DIR = ROOT / "contracts" / "json_schema"
@@ -11,10 +22,20 @@ SCHEMA_DIR = ROOT / "contracts" / "json_schema"
 
 def main() -> None:
     SCHEMA_DIR.mkdir(parents=True, exist_ok=True)
-    for model in (TelemetryPoint, ControlCommand, KPISet, KPIComparison):
+    for model in (
+        TelemetryPoint,
+        ControlCommand,
+        KPISet,
+        KPIComparison,
+        Recommendation,
+        RecommendationConstraint,
+        RecommendationImpact,
+        RecommendationInterval,
+        RecommendationPlan,
+    ):
         destination = SCHEMA_DIR / f"{model.__name__}.schema.json"
         schema = json.dumps(model.model_json_schema(), indent=2) + "\n"
-        destination.write_text(schema, encoding="utf-8")
+        destination.write_text(schema, encoding="utf-8", newline="\n")
 
     states = " | ".join(json.dumps(item.value) for item in EquipmentState)
     (ROOT / "web" / "src" / "contracts.ts").write_text(
@@ -36,6 +57,7 @@ export interface ControlCommand {{
   action: ControlAction;
   duration_min: number | null;
   rationale: string;
+  setpoint_delta_c: number | null;
 }}
 export interface KPISet {{
   energy_kwh: number;
@@ -52,8 +74,37 @@ export interface KPIComparison {{
   realized: KPISet;
   absolute_error: Record<string, number>;
 }}
+export interface RecommendationImpact {{
+  energy_kwh: number;
+  cost_inr: number;
+  co2_kg: number;
+  peak_kw: number;
+  late_jobs: number;
+}}
+export interface RecommendationConstraint {{ rule: string; passed: boolean; detail: string; }}
+export interface Recommendation {{
+  id: string;
+  ts: string;
+  equipment: string;
+  action: ControlAction;
+  action_parameters: Record<string, number | string>;
+  start: string;
+  duration_min: number;
+  projected: RecommendationImpact;
+  interval: {{ p05: RecommendationImpact; p95: RecommendationImpact }};
+  constraints: RecommendationConstraint[];
+  confidence: number;
+  evidence: Record<string, unknown>;
+  revert_if: string[];
+}}
+export interface RecommendationPlan {{
+  mode: 'human' | 'auto';
+  recommendations: Recommendation[];
+  rejected: Record<string, unknown>[];
+}}
 """,
         encoding="utf-8",
+        newline="\n",
     )
 
 

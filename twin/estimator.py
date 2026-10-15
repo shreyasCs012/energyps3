@@ -295,6 +295,15 @@ def snapshot_from_estimates(
     if history.empty:
         raise ValueError("no estimate exists at or before the requested timestamp")
     latest = history.sort_values("timestamp").groupby("equipment_id", sort=True).tail(1)
+    state_ages: dict[str, int] = {}
+    for equipment, rows in history.sort_values("timestamp").groupby("equipment_id", sort=True):
+        current_state = str(latest.loc[latest.equipment_id == equipment, "state"].iloc[-1])
+        age = 0
+        for value in rows.state.astype(str).iloc[::-1]:
+            if value != current_state:
+                break
+            age += 1
+        state_ages[equipment] = age
     return TwinSnapshot(
         timestamp=moment.to_pydatetime(),
         machine_states={row.equipment_id: EquipmentState(row.state) for row in latest.itertuples()},
@@ -304,4 +313,5 @@ def snapshot_from_estimates(
         temperature_c=float(temperature_c),
         occupied=bool(occupied),
         confidence={row.equipment_id: float(row.confidence) for row in latest.itertuples()},
+        state_age_min=state_ages,
     )

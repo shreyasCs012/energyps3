@@ -48,6 +48,19 @@
     "rationale": {
       "title": "Rationale",
       "type": "string"
+    },
+    "setpoint_delta_c": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Setpoint Delta C"
     }
   },
   "required": [

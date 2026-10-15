@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from enum import StrEnum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -43,6 +44,7 @@ class ControlCommand(Contract):
     action: ControlAction
     duration_min: int | None = Field(default=None, ge=1)
     rationale: str
+    setpoint_delta_c: float | None = Field(default=None, gt=0)
 
 
 class KPISet(Contract):
@@ -60,3 +62,44 @@ class KPIComparison(Contract):
     predicted: KPISet
     realized: KPISet
     absolute_error: dict[str, float]
+
+
+class RecommendationImpact(Contract):
+    energy_kwh: float
+    cost_inr: float
+    co2_kg: float
+    peak_kw: float
+    late_jobs: float
+
+
+class RecommendationInterval(Contract):
+    p05: RecommendationImpact
+    p95: RecommendationImpact
+
+
+class RecommendationConstraint(Contract):
+    rule: str = Field(min_length=1)
+    passed: bool
+    detail: str
+
+
+class Recommendation(Contract):
+    id: str = Field(min_length=1)
+    ts: datetime
+    equipment: str = Field(min_length=1)
+    action: ControlAction
+    action_parameters: dict[str, float | str] = Field(default_factory=dict)
+    start: datetime
+    duration_min: int = Field(ge=1)
+    projected: RecommendationImpact
+    interval: RecommendationInterval
+    constraints: list[RecommendationConstraint]
+    confidence: float = Field(ge=0, le=1)
+    evidence: dict[str, object]
+    revert_if: list[str]
+
+
+class RecommendationPlan(Contract):
+    mode: Literal["human", "auto"]
+    recommendations: list[Recommendation]
+    rejected: list[dict[str, object]]

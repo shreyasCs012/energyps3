@@ -1,0 +1,25 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "rule": {
+      "minLength": 1,
+      "title": "Rule",
+      "type": "string"
+    },
+    "passed": {
+      "title": "Passed",
+      "type": "boolean"
+    },
+    "detail": {
+      "title": "Detail",
+      "type": "string"
+    }
+  },
+  "required": [
+    "rule",
+    "passed",
+    "detail"
+  ],
+  "title": "RecommendationConstraint",
+  "type": "object"
+}

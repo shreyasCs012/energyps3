@@ -1,4 +1,4 @@
-.PHONY: setup data train eval render cv demo test lint format schema clean
+.PHONY: setup data train eval optimize render cv demo test lint format schema clean
 
 setup:
 	python -m pip install -e ".[dev,api,cv]"
@@ -11,6 +11,9 @@ train:
 
 eval:
 	python -m eval.run --input data/generated --output reports/analytics --config config/facility.yaml
+
+optimize:
+	python -m policies.optimize --input data/generated --output reports/optimizer/recommendations.json
 
 render:
 	python -m renderer.generate

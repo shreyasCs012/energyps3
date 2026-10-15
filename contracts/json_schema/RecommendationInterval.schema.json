@@ -1,0 +1,53 @@
+{
+  "$defs": {
+    "RecommendationImpact": {
+      "additionalProperties": false,
+      "properties": {
+        "energy_kwh": {
+          "title": "Energy Kwh",
+          "type": "number"
+        },
+        "cost_inr": {
+          "title": "Cost Inr",
+          "type": "number"
+        },
+        "co2_kg": {
+          "title": "Co2 Kg",
+          "type": "number"
+        },
+        "peak_kw": {
+          "title": "Peak Kw",
+          "type": "number"
+        },
+        "late_jobs": {
+          "title": "Late Jobs",
+          "type": "number"
+        }
+      },
+      "required": [
+        "energy_kwh",
+        "cost_inr",
+        "co2_kg",
+        "peak_kw",
+        "late_jobs"
+      ],
+      "title": "RecommendationImpact",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "p05": {
+      "$ref": "#/$defs/RecommendationImpact"
+    },
+    "p95": {
+      "$ref": "#/$defs/RecommendationImpact"
+    }
+  },
+  "required": [
+    "p05",
+    "p95"
+  ],
+  "title": "RecommendationInterval",
+  "type": "object"
+}

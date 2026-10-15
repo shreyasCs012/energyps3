@@ -13,5 +13,8 @@
 - CV source clips are split by clip ID before training-only augmentations. YOLO requires caller-supplied weights to prevent implicit downloads; OpenCV HOG is the offline people detector fallback.
 - The procedural renderer uses plant truth only as a labeled synthetic video source. Those labels remain outside the twin input path.
 - Replay selection returns looping clip offsets and crossfade metadata; actual compositing is left to a future replay UI/API.
-- Phase checkpoints are applied in the order requested by the master spec. The current checkpoint is Phase 4.
+- Phase 5 uses deterministic greedy selection by weighted projected benefit per action minute and a 15-minute feasible-slot search for flexible-job deferrals; it does not require OR-Tools. CO2 and lateness objective weights, horizon, ensemble size, peak cap, and HVAC setback are configurable in `config/optimizer.yaml`.
+- Phase 5 recommendations are proposals only. The CLI exports JSON and does not actuate the plant; human approval/apply flow belongs to the API/dashboard phases.
+- The optimizer uses paired seeded twin projections with state-confidence and weather forecast perturbations. Projected KPI fields are baseline-minus-action deltas: positive values indicate savings/improvement and negative values indicate a projected increase.
+- Phase checkpoints are applied in the order requested by the master spec. The current checkpoint is Phase 5.
 
