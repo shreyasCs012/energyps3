@@ -5,11 +5,13 @@ from pathlib import Path
 
 from contracts.models import (
     ControlCommand,
+    CopilotResponse,
     EquipmentState,
     KPIComparison,
     KPISet,
     Recommendation,
     RecommendationConstraint,
+    RecommendationExplanation,
     RecommendationImpact,
     RecommendationInterval,
     RecommendationPlan,
@@ -32,6 +34,8 @@ def main() -> None:
         RecommendationImpact,
         RecommendationInterval,
         RecommendationPlan,
+        RecommendationExplanation,
+        CopilotResponse,
     ):
         destination = SCHEMA_DIR / f"{model.__name__}.schema.json"
         schema = json.dumps(model.model_json_schema(), indent=2) + "\n"
@@ -101,6 +105,18 @@ export interface RecommendationPlan {{
   mode: 'human' | 'auto';
   recommendations: Recommendation[];
   rejected: Record<string, unknown>[];
+}}
+export interface RecommendationExplanation {{
+  summary: string;
+  rationale: string;
+  impact: Record<string, string>;
+  constraints: string[];
+  caveats: string[];
+}}
+export interface CopilotResponse {{
+  tool: 'what_if' | 'get_kpis' | 'list_anomalies' | 'forecast';
+  answer: string;
+  result: Record<string, unknown>;
 }}
 """,
         encoding="utf-8",

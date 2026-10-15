@@ -1,0 +1,31 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "tool": {
+      "enum": [
+        "what_if",
+        "get_kpis",
+        "list_anomalies",
+        "forecast"
+      ],
+      "title": "Tool",
+      "type": "string"
+    },
+    "answer": {
+      "title": "Answer",
+      "type": "string"
+    },
+    "result": {
+      "additionalProperties": true,
+      "title": "Result",
+      "type": "object"
+    }
+  },
+  "required": [
+    "tool",
+    "answer",
+    "result"
+  ],
+  "title": "CopilotResponse",
+  "type": "object"
+}

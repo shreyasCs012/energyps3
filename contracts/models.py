@@ -103,3 +103,17 @@ class RecommendationPlan(Contract):
     mode: Literal["human", "auto"]
     recommendations: list[Recommendation]
     rejected: list[dict[str, object]]
+
+
+class RecommendationExplanation(Contract):
+    summary: str
+    rationale: str
+    impact: dict[str, str]
+    constraints: list[str]
+    caveats: list[str]
+
+
+class CopilotResponse(Contract):
+    tool: Literal["what_if", "get_kpis", "list_anomalies", "forecast"]
+    answer: str
+    result: dict[str, object]

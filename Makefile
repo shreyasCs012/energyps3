@@ -1,4 +1,4 @@
-.PHONY: setup data train eval optimize render cv demo test lint format schema clean
+.PHONY: setup data train eval optimize explain report render cv demo test lint format schema clean
 
 setup:
 	python -m pip install -e ".[dev,api,cv]"
@@ -14,6 +14,12 @@ eval:
 
 optimize:
 	python -m policies.optimize --input data/generated --output reports/optimizer/recommendations.json
+
+explain:
+	python -m genai.cli --input reports/optimizer/recommendations.json --output reports/optimizer/explanations.json
+
+report:
+	python -m genai.report reports/analytics/analytics_report.json --output reports/end_of_day.md
 
 render:
 	python -m renderer.generate

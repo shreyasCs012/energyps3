@@ -61,3 +61,15 @@ export interface RecommendationPlan {
   recommendations: Recommendation[];
   rejected: Record<string, unknown>[];
 }
+export interface RecommendationExplanation {
+  summary: string;
+  rationale: string;
+  impact: Record<string, string>;
+  constraints: string[];
+  caveats: string[];
+}
+export interface CopilotResponse {
+  tool: 'what_if' | 'get_kpis' | 'list_anomalies' | 'forecast';
+  answer: string;
+  result: Record<string, unknown>;
+}

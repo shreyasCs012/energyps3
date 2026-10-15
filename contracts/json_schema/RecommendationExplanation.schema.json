@@ -1,0 +1,43 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "rationale": {
+      "title": "Rationale",
+      "type": "string"
+    },
+    "impact": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Impact",
+      "type": "object"
+    },
+    "constraints": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Constraints",
+      "type": "array"
+    },
+    "caveats": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Caveats",
+      "type": "array"
+    }
+  },
+  "required": [
+    "summary",
+    "rationale",
+    "impact",
+    "constraints",
+    "caveats"
+  ],
+  "title": "RecommendationExplanation",
+  "type": "object"
+}
