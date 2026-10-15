@@ -678,11 +678,16 @@ def run_policy_campaign(
         }
     output.mkdir(parents=True, exist_ok=True)
     (output / "policy_evaluation.json").write_text(
-        json.dumps(report, indent=2, allow_nan=False) + "\n", encoding="utf-8"
+        json.dumps(report, indent=2, allow_nan=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
     (output / "policy_trials.csv").write_text(
-        pd.DataFrame(policy_rows).drop(columns=["predicted_savings"]).to_csv(index=False),
+        pd.DataFrame(policy_rows)
+        .drop(columns=["predicted_savings"])
+        .to_csv(index=False, lineterminator="\n"),
         encoding="utf-8",
+        newline="\n",
     )
     markdown_path = (
         Path("reports/results.md")
@@ -690,7 +695,7 @@ def run_policy_campaign(
         else output / "reports" / "results.md"
     )
     markdown_path.parent.mkdir(parents=True, exist_ok=True)
-    markdown_path.write_text(render_markdown(report), encoding="utf-8")
+    markdown_path.write_text(render_markdown(report), encoding="utf-8", newline="\n")
     return report
 
 
