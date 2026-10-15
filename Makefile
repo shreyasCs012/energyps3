@@ -7,10 +7,10 @@ data:
 	python -m plant.generate --config config/facility.yaml --scenario S1 --seed 42
 
 train:
-	python -m analytics.train --config config/facility.yaml
+	python -m analytics.train --input data/generated --output models/analytics.joblib --config config/facility.yaml
 
 eval:
-	python -m eval.run --config config/scenarios.yaml
+	python -m eval.run --input data/generated --output reports/analytics --config config/facility.yaml
 
 demo:
 	python -m api.app

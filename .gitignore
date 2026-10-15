@@ -14,6 +14,8 @@ node_modules/
 web/dist/
 data/generated/*
 !data/generated/.gitkeep
+models/
+reports/analytics/
 demo_cache/
 *.sqlite3
 .env
