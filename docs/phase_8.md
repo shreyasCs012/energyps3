@@ -8,6 +8,7 @@
 - Added replay pause, 1×/10×/60× speed, start seek, live machine estimates, meter and twin load charts, camera event signals, tariff and cost estimates, and recommendation constraint/evidence summaries.
 - Added a visible synthetic-data badge and scope/assumption copy throughout the dashboard. The impact report exports the API Markdown response.
 - Added a Vite development proxy for the local API and WebSocket, so local UI/API development does not need permissive cross-origin API settings.
+- Added a configurable API CORS origin allowlist (`ENERGYSENSE_CORS_ORIGINS`) for separate-origin dashboard deployments; local Vite origins are the development default.
 
 ## Verification
 
@@ -36,7 +37,9 @@ npm install
 npm run dev
 ```
 
-Open the Vite URL (normally `http://localhost:5173`), choose a scenario, and click **Run simulation**. The dashboard generates its own one-day synthetic run. The Vite proxy forwards API and WebSocket paths to `127.0.0.1:8000`. Set `VITE_API_URL` at build time only when serving the UI and API on separate origins; configure the API's CORS policy for that deployment.
+Open the Vite URL (normally `http://localhost:5173`), choose a scenario, and click **Run simulation**. The dashboard generates its own one-day synthetic run. The Vite proxy forwards API and WebSocket paths to `127.0.0.1:8000`.
+
+For a split-host deployment, build the static UI with `VITE_API_URL` set to the HTTPS API origin and set `ENERGYSENSE_CORS_ORIGINS` on the API to the exact HTTPS dashboard origin. The hosting reverse proxy must forward `/ws/replay` with WebSocket upgrade support. Store generated data on a persistent disk if runs must survive restarts; recommendation decisions are currently process-local.
 
 ## Known scope
 
