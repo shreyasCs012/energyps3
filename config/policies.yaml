@@ -1,0 +1,6 @@
+threshold_alert:
+  main_meter_kw: 35.0
+rule_idle_shutdown:
+  idle_minutes: 15
+  standby_duration_min: 30
+
