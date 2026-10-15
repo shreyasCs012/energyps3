@@ -1,0 +1,112 @@
+{
+  "$defs": {
+    "ControlAction": {
+      "enum": [
+        "STANDBY",
+        "PRE_WARM",
+        "LIGHTS_OFF",
+        "HVAC_SETBACK",
+        "DEFER_JOB"
+      ],
+      "title": "ControlAction",
+      "type": "string"
+    },
+    "ControlCommand": {
+      "additionalProperties": false,
+      "properties": {
+        "command_id": {
+          "minLength": 1,
+          "title": "Command Id",
+          "type": "string"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        },
+        "equipment_id": {
+          "minLength": 1,
+          "title": "Equipment Id",
+          "type": "string"
+        },
+        "action": {
+          "$ref": "#/$defs/ControlAction"
+        },
+        "duration_min": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Duration Min"
+        },
+        "rationale": {
+          "title": "Rationale",
+          "type": "string"
+        },
+        "setpoint_delta_c": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Setpoint Delta C"
+        }
+      },
+      "required": [
+        "command_id",
+        "issued_at",
+        "equipment_id",
+        "action",
+        "rationale"
+      ],
+      "title": "ControlCommand",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "$ref": "#/$defs/ControlCommand"
+    },
+    "horizon_min": {
+      "default": 60,
+      "maximum": 240,
+      "minimum": 1,
+      "title": "Horizon Min",
+      "type": "integer"
+    },
+    "scenario": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scenario"
+    },
+    "seed": {
+      "default": 42,
+      "title": "Seed",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "action"
+  ],
+  "title": "WhatIfRequest",
+  "type": "object"
+}

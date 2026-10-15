@@ -4,18 +4,31 @@ import json
 from pathlib import Path
 
 from contracts.models import (
+    AnomalyEvent,
+    AnomalyResponse,
     ControlCommand,
+    CopilotRequest,
     CopilotResponse,
     EquipmentState,
+    ForecastPoint,
+    ForecastResponse,
     KPIComparison,
+    KPIResponse,
     KPISet,
     Recommendation,
     RecommendationConstraint,
+    RecommendationDecision,
     RecommendationExplanation,
     RecommendationImpact,
     RecommendationInterval,
     RecommendationPlan,
+    RecommendationScheduleRequest,
+    ReportResponse,
+    RunRequest,
+    RunResponse,
     TelemetryPoint,
+    WhatIfRequest,
+    WhatIfResponse,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +49,19 @@ def main() -> None:
         RecommendationPlan,
         RecommendationExplanation,
         CopilotResponse,
+        CopilotRequest,
+        RunRequest,
+        RunResponse,
+        WhatIfRequest,
+        WhatIfResponse,
+        ForecastPoint,
+        ForecastResponse,
+        AnomalyEvent,
+        AnomalyResponse,
+        RecommendationDecision,
+        RecommendationScheduleRequest,
+        ReportResponse,
+        KPIResponse,
     ):
         destination = SCHEMA_DIR / f"{model.__name__}.schema.json"
         schema = json.dumps(model.model_json_schema(), indent=2) + "\n"
@@ -117,6 +143,68 @@ export interface CopilotResponse {{
   tool: 'what_if' | 'get_kpis' | 'list_anomalies' | 'forecast';
   answer: string;
   result: Record<string, unknown>;
+}}
+export interface CopilotRequest {{
+  query: string;
+}}
+export interface RunRequest {{
+  scenario: string;
+  seed: number;
+  days: number;
+  cv_mode: 'oracle' | 'simulated';
+}}
+export interface RunResponse {{
+  scenario: string;
+  seed: number;
+  days: number;
+  synthetic: true;
+  output_dir: string;
+  manifest: Record<string, unknown>;
+}}
+export interface KPIResponse extends KPISet {{ synthetic: true; }}
+export interface WhatIfRequest {{
+  action: ControlCommand;
+  horizon_min: number;
+  scenario: string | null;
+  seed: number;
+}}
+export interface WhatIfResponse {{
+  baseline: KPISet;
+  projected: KPISet;
+  delta: Record<string, number>;
+  seed: number;
+  synthetic: true;
+}}
+export interface ForecastPoint {{
+  timestamp: string;
+  predicted_kw: number;
+}}
+export interface ForecastResponse {{
+  method: string;
+  points: ForecastPoint[];
+  synthetic: true;
+}}
+export interface AnomalyEvent {{
+  timestamp: string;
+  main_kw: number;
+  threshold_kw: number;
+  score: number;
+  detector: string;
+}}
+export interface AnomalyResponse {{
+  events: AnomalyEvent[];
+  synthetic: true;
+}}
+export interface RecommendationDecision {{
+  recommendation_id: string;
+  status: 'approved' | 'rejected' | 'scheduled';
+  scheduled_for: string | null;
+  message: string;
+}}
+export interface RecommendationScheduleRequest {{ scheduled_for: string; }}
+export interface ReportResponse {{
+  markdown: string;
+  synthetic: true;
 }}
 """,
         encoding="utf-8",

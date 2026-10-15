@@ -28,7 +28,7 @@ cv:
 	python -m cv.ingest_clips --manifest data/clips/manifest.csv
 
 demo:
-	python -m api.app
+	uvicorn api.app:app --host 127.0.0.1 --port 8000
 
 test:
 	python -m pytest

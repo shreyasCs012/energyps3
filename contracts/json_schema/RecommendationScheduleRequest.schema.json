@@ -1,0 +1,15 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "scheduled_for": {
+      "format": "date-time",
+      "title": "Scheduled For",
+      "type": "string"
+    }
+  },
+  "required": [
+    "scheduled_for"
+  ],
+  "title": "RecommendationScheduleRequest",
+  "type": "object"
+}

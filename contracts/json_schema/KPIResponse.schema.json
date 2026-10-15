@@ -1,0 +1,63 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "energy_kwh": {
+      "minimum": 0,
+      "title": "Energy Kwh",
+      "type": "number"
+    },
+    "peak_15min_kw": {
+      "minimum": 0,
+      "title": "Peak 15Min Kw",
+      "type": "number"
+    },
+    "cost_inr": {
+      "minimum": 0,
+      "title": "Cost Inr",
+      "type": "number"
+    },
+    "co2_kg": {
+      "minimum": 0,
+      "title": "Co2 Kg",
+      "type": "number"
+    },
+    "idle_waste_kwh": {
+      "minimum": 0,
+      "title": "Idle Waste Kwh",
+      "type": "number"
+    },
+    "restarts": {
+      "minimum": 0,
+      "title": "Restarts",
+      "type": "integer"
+    },
+    "late_jobs": {
+      "minimum": 0,
+      "title": "Late Jobs",
+      "type": "integer"
+    },
+    "comfort_violation_min": {
+      "minimum": 0,
+      "title": "Comfort Violation Min",
+      "type": "integer"
+    },
+    "synthetic": {
+      "const": true,
+      "default": true,
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "energy_kwh",
+    "peak_15min_kw",
+    "cost_inr",
+    "co2_kg",
+    "idle_waste_kwh",
+    "restarts",
+    "late_jobs",
+    "comfort_violation_min"
+  ],
+  "title": "KPIResponse",
+  "type": "object"
+}

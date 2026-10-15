@@ -1,0 +1,21 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "timestamp": {
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "predicted_kw": {
+      "minimum": 0,
+      "title": "Predicted Kw",
+      "type": "number"
+    }
+  },
+  "required": [
+    "timestamp",
+    "predicted_kw"
+  ],
+  "title": "ForecastPoint",
+  "type": "object"
+}

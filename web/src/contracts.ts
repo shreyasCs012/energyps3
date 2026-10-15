@@ -73,3 +73,65 @@ export interface CopilotResponse {
   answer: string;
   result: Record<string, unknown>;
 }
+export interface CopilotRequest {
+  query: string;
+}
+export interface RunRequest {
+  scenario: string;
+  seed: number;
+  days: number;
+  cv_mode: 'oracle' | 'simulated';
+}
+export interface RunResponse {
+  scenario: string;
+  seed: number;
+  days: number;
+  synthetic: true;
+  output_dir: string;
+  manifest: Record<string, unknown>;
+}
+export interface KPIResponse extends KPISet { synthetic: true; }
+export interface WhatIfRequest {
+  action: ControlCommand;
+  horizon_min: number;
+  scenario: string | null;
+  seed: number;
+}
+export interface WhatIfResponse {
+  baseline: KPISet;
+  projected: KPISet;
+  delta: Record<string, number>;
+  seed: number;
+  synthetic: true;
+}
+export interface ForecastPoint {
+  timestamp: string;
+  predicted_kw: number;
+}
+export interface ForecastResponse {
+  method: string;
+  points: ForecastPoint[];
+  synthetic: true;
+}
+export interface AnomalyEvent {
+  timestamp: string;
+  main_kw: number;
+  threshold_kw: number;
+  score: number;
+  detector: string;
+}
+export interface AnomalyResponse {
+  events: AnomalyEvent[];
+  synthetic: true;
+}
+export interface RecommendationDecision {
+  recommendation_id: string;
+  status: 'approved' | 'rejected' | 'scheduled';
+  scheduled_for: string | null;
+  message: string;
+}
+export interface RecommendationScheduleRequest { scheduled_for: string; }
+export interface ReportResponse {
+  markdown: string;
+  synthetic: true;
+}

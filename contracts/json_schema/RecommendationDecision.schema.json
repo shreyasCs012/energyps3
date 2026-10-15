@@ -1,0 +1,42 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "recommendation_id": {
+      "title": "Recommendation Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "approved",
+        "rejected",
+        "scheduled"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "scheduled_for": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scheduled For"
+    },
+    "message": {
+      "title": "Message",
+      "type": "string"
+    }
+  },
+  "required": [
+    "recommendation_id",
+    "status",
+    "message"
+  ],
+  "title": "RecommendationDecision",
+  "type": "object"
+}

@@ -1,0 +1,51 @@
+{
+  "$defs": {
+    "ForecastPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "predicted_kw": {
+          "minimum": 0,
+          "title": "Predicted Kw",
+          "type": "number"
+        }
+      },
+      "required": [
+        "timestamp",
+        "predicted_kw"
+      ],
+      "title": "ForecastPoint",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "method": {
+      "title": "Method",
+      "type": "string"
+    },
+    "points": {
+      "items": {
+        "$ref": "#/$defs/ForecastPoint"
+      },
+      "title": "Points",
+      "type": "array"
+    },
+    "synthetic": {
+      "const": true,
+      "default": true,
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "method",
+    "points"
+  ],
+  "title": "ForecastResponse",
+  "type": "object"
+}

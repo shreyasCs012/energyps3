@@ -58,6 +58,10 @@ class KPISet(Contract):
     comfort_violation_min: int = Field(ge=0)
 
 
+class KPIResponse(KPISet):
+    synthetic: Literal[True] = True
+
+
 class KPIComparison(Contract):
     predicted: KPISet
     realized: KPISet
@@ -117,3 +121,78 @@ class CopilotResponse(Contract):
     tool: Literal["what_if", "get_kpis", "list_anomalies", "forecast"]
     answer: str
     result: dict[str, object]
+
+
+class CopilotRequest(Contract):
+    query: str = Field(min_length=1, max_length=2000)
+
+
+class RunRequest(Contract):
+    scenario: str = "S1"
+    seed: int = 42
+    days: int = Field(default=1, ge=1, le=70)
+    cv_mode: Literal["oracle", "simulated"] = "simulated"
+
+
+class RunResponse(Contract):
+    scenario: str
+    seed: int
+    days: int
+    synthetic: Literal[True] = True
+    output_dir: str
+    manifest: dict[str, object]
+
+
+class WhatIfRequest(Contract):
+    action: ControlCommand
+    horizon_min: int = Field(default=60, ge=1, le=240)
+    scenario: str | None = None
+    seed: int = 42
+
+
+class WhatIfResponse(Contract):
+    baseline: KPISet
+    projected: KPISet
+    delta: dict[str, float]
+    seed: int
+    synthetic: Literal[True] = True
+
+
+class ForecastPoint(Contract):
+    timestamp: datetime
+    predicted_kw: float = Field(ge=0)
+
+
+class ForecastResponse(Contract):
+    method: str
+    points: list[ForecastPoint]
+    synthetic: Literal[True] = True
+
+
+class AnomalyEvent(Contract):
+    timestamp: datetime
+    main_kw: float = Field(ge=0)
+    threshold_kw: float = Field(gt=0)
+    score: float = Field(ge=0)
+    detector: str = "threshold_alert"
+
+
+class AnomalyResponse(Contract):
+    events: list[AnomalyEvent]
+    synthetic: Literal[True] = True
+
+
+class RecommendationDecision(Contract):
+    recommendation_id: str
+    status: Literal["approved", "rejected", "scheduled"]
+    scheduled_for: datetime | None = None
+    message: str
+
+
+class RecommendationScheduleRequest(Contract):
+    scheduled_for: datetime
+
+
+class ReportResponse(Contract):
+    markdown: str
+    synthetic: Literal[True] = True

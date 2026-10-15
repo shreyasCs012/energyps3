@@ -1,0 +1,63 @@
+{
+  "$defs": {
+    "AnomalyEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "main_kw": {
+          "minimum": 0,
+          "title": "Main Kw",
+          "type": "number"
+        },
+        "threshold_kw": {
+          "exclusiveMinimum": 0,
+          "title": "Threshold Kw",
+          "type": "number"
+        },
+        "score": {
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "detector": {
+          "default": "threshold_alert",
+          "title": "Detector",
+          "type": "string"
+        }
+      },
+      "required": [
+        "timestamp",
+        "main_kw",
+        "threshold_kw",
+        "score"
+      ],
+      "title": "AnomalyEvent",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "events": {
+      "items": {
+        "$ref": "#/$defs/AnomalyEvent"
+      },
+      "title": "Events",
+      "type": "array"
+    },
+    "synthetic": {
+      "const": true,
+      "default": true,
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "events"
+  ],
+  "title": "AnomalyResponse",
+  "type": "object"
+}

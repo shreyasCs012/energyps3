@@ -1,0 +1,33 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "scenario": {
+      "default": "S1",
+      "title": "Scenario",
+      "type": "string"
+    },
+    "seed": {
+      "default": 42,
+      "title": "Seed",
+      "type": "integer"
+    },
+    "days": {
+      "default": 1,
+      "maximum": 70,
+      "minimum": 1,
+      "title": "Days",
+      "type": "integer"
+    },
+    "cv_mode": {
+      "default": "simulated",
+      "enum": [
+        "oracle",
+        "simulated"
+      ],
+      "title": "Cv Mode",
+      "type": "string"
+    }
+  },
+  "title": "RunRequest",
+  "type": "object"
+}

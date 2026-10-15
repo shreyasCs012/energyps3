@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "scenario": {
+      "title": "Scenario",
+      "type": "string"
+    },
+    "seed": {
+      "title": "Seed",
+      "type": "integer"
+    },
+    "days": {
+      "title": "Days",
+      "type": "integer"
+    },
+    "synthetic": {
+      "const": true,
+      "default": true,
+      "title": "Synthetic",
+      "type": "boolean"
+    },
+    "output_dir": {
+      "title": "Output Dir",
+      "type": "string"
+    },
+    "manifest": {
+      "additionalProperties": true,
+      "title": "Manifest",
+      "type": "object"
+    }
+  },
+  "required": [
+    "scenario",
+    "seed",
+    "days",
+    "output_dir",
+    "manifest"
+  ],
+  "title": "RunResponse",
+  "type": "object"
+}

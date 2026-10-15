@@ -1,0 +1,20 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "markdown": {
+      "title": "Markdown",
+      "type": "string"
+    },
+    "synthetic": {
+      "const": true,
+      "default": true,
+      "title": "Synthetic",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "markdown"
+  ],
+  "title": "ReportResponse",
+  "type": "object"
+}
