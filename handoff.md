@@ -2,7 +2,7 @@
 
 ## Current state
 
-Phases 0 through 7 are implemented. This remains a synthetic-data prototype; no real facility data or validated savings claims are included.
+Phases 0 through 8 are implemented; Phase 9 is the final planned phase. This remains a synthetic-data prototype; no real facility data or validated savings claims are included.
 
 ## Work completed
 
@@ -20,7 +20,8 @@ Phases 0 through 7 are implemented. This remains a synthetic-data prototype; no 
 - Added Phase 5 recommendation contracts, generated schemas and TypeScript types, and an optimizer CLI/Makefile target.
 - Added Phase 6 grounded template and optional LLM recommendation explanations, numeric validation with safe template fallback, allowlisted copilot tool routing with an offline regex path, results JSON to Markdown report generation, contracts, schemas, TypeScript types, and Makefile targets.
 - Added Phase 7 FastAPI REST endpoints for scenarios, runs, KPIs, recommendation decisions, what-if, forecast, anomaly alerts, CV events, reports, and copilot. Added a controllable WebSocket replay for estimated twin state, meter and CV events, recommendations, speed, pause, seek, policy, and scenario selection.
-- Captured assumptions in `ASSUMPTIONS.md`; phase records are in `docs/phase_0.md` through `docs/phase_7.md`.
+- Added Phase 8 responsive React control-room dashboard views for live floor/replay, twin comparison, recommendation review, analytics, impact report, and copilot. Wired the UI to REST/WebSocket routes, exposed configured tariff assumptions, and added a Vite development proxy.
+- Captured assumptions in `ASSUMPTIONS.md`; phase records are in `docs/phase_0.md` through `docs/phase_8.md`.
 
 ## Verification and commits
 
@@ -32,29 +33,35 @@ Phases 0 through 7 are implemented. This remains a synthetic-data prototype; no 
 - Phase 5: `python -m pytest -q` (37 passed), `python -m ruff check .`, `python -m ruff format --check .` (58 files formatted), and `git diff --check` passed. Generated one synthetic day and ran `python -m policies.optimize` at 08:00 with the 30-seed ensemble plus a fast two-seed smoke after final edits; recommendation JSON included accepted/rejected candidates, KPI deltas, intervals, rule checks, meter windows, and CV event references. Same benign Windows `joblib` warning.
 - Phase 6: `python -m pytest -q` (47 passed, one benign Windows `joblib` warning), `python -m ruff check .`, `python -m ruff format --check .` (68 files formatted), `python -m contracts.export_schema`, `git diff --check`, and an end-to-end optimizer → explanation → Markdown report smoke run passed. The optional live LLM provider was not called. Feature commit: `1ee2974 feat: add grounded GenAI explanations and copilot`.
 - Phase 7: `python -m pytest -q` (53 passed; Starlette TestClient/httpx deprecation and benign Windows `joblib` warnings), `python -m ruff check .`, `python -m ruff format --check .` (72 files formatted), `python -m contracts.export_schema`, `git diff --check`, and `npm run build` in `web/` passed. API tests cover REST contracts, run/what-if, copilot, reports, proposal decisions, validation errors, and WebSocket pause/seek/replay. Feature commit: `01a7631 feat: add EnergySense REST and replay API`.
+- Phase 8: `npm run build` in `web/` passed; `python -m pytest -q` (53 passed, with the same two environment/library warnings), `python -m ruff check .`, `python -m ruff format --check .` (73 files), and `git diff --check` passed. Local API smoke generated S2 / seed 42 / one synthetic day and successfully queried KPIs, a four-point forecast, and Markdown report. The temporary Vite port was not reachable from the browser harness, so UI interaction was not browser-verified. Vite notes the minified JS chunk exceeds 500 kB.
 - GNU Make is not installed in the Windows environment, so Makefile targets were verified using their underlying commands.
 - Phase commits are pushed to `origin/main`: `4523d22 chore: scaffold EnergySense Twin project`, `7644918 feat: add seeded plant simulator and data generation`, `b287742 feat: add calibrated digital twin and baseline policies`, `47f3c14 feat: add forecasting anomaly detection and evaluation harness`, `11daab6 feat: add streaming CV and procedural replay pipeline`, `a8175d9 feat: add constrained optimizer recommendations`, Phase 6 `1ee2974 feat: add grounded GenAI explanations and copilot`, and Phase 7 `01a7631 feat: add EnergySense REST and replay API`.
 
+## Phase commits
+
+Phase 0–7 commits are pushed to `origin/main`: `4523d22 chore: scaffold EnergySense Twin project`, `7644918 feat: add seeded plant simulator and data generation`, `b287742 feat: add calibrated digital twin and baseline policies`, `47f3c14 feat: add forecasting anomaly detection and evaluation harness`, `11daab6 feat: add streaming CV and procedural replay pipeline`, `a8175d9 feat: add constrained optimizer recommendations`, `1ee2974 feat: add grounded GenAI explanations and copilot`, and `01a7631 feat: add EnergySense REST and replay API`. Phase 8 feature commit: `da115ec feat: build EnergySense control room dashboard`. The documentation checkpoint commit follows it.
+
 ## Local run and deployment steps
 
-No production deployment is available at this checkpoint. For local synthetic generation and checks on a machine with Python 3.11+:
+No production deployment is available at this checkpoint. For local synthetic generation and checks on a machine with Python 3.11+ and Node.js/npm:
 
 1. Clone the repository and enter its root.
 2. Run `python -m pip install -e ".[dev,api,cv]"` to install the simulator, API, tests, and lint dependencies.
 3. Start the local API with `uvicorn api.app:app --host 127.0.0.1 --port 8000` (or `make demo`) and open `http://127.0.0.1:8000/docs`.
-4. Call `POST /run` with `{"scenario":"S1","seed":42,"days":1}` to create a one-day synthetic run. Set `ENERGYSENSE_DATA_DIR` and `ENERGYSENSE_REPORT_DIR` to change data/report locations.
-5. Run `python -m plant.generate --scenario S1 --seed 42` to generate the configured 70-day synthetic Parquet dataset under `data/generated/` when full analytics are needed.
-6. Run `python -m pytest` and `python -m ruff check .` to verify the current implementation.
-7. Run `python -m analytics.train --input data/generated --output models/analytics.joblib` to fit the normal-day anomaly model.
-8. Run `python -m eval.run --input data/generated --output reports/analytics` to produce forecasting, event-level anomaly, and root-cause report artifacts.
-9. Run `python -m policies.optimize --input data/generated --timestamp 2025-01-01T08:00:00+05:30 --output reports/optimizer/recommendations.json --mode human` to produce a recommendation plan from observable input files. It does not actuate controls.
-10. Run `python -m genai.cli --input reports/optimizer/recommendations.json --output reports/optimizer/explanations.json` for grounded explanations. The deterministic template works offline. Optional LLM use requires `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_API_BASE_URL`, and `LLM_MODEL` environment variables.
-11. Run `python -m genai.report reports/analytics/analytics_report.json --output reports/end_of_day.md` to render a Markdown summary from results JSON.
-12. Run `python -m renderer.generate --minutes 10 --video data/generated/renderer/synthetic.mp4 --labels data/generated/renderer/labels.csv` to render a small labeled sample.
-13. Populate `data/clips/manifest.csv` with at least three videos and the documented columns, then run `python -m cv.ingest_clips --manifest data/clips/manifest.csv` to normalize clips and emit event Parquet.
-14. Run `python -m pytest` and `python -m ruff check .` for final checks.
+4. In another terminal, run `cd web`, `npm install`, and `npm run dev`; open the Vite URL (normally `http://localhost:5173`). Its development proxy forwards REST and WebSocket requests to the API.
+5. Select a scenario and click **Run simulation**. The dashboard calls `POST /run` to create a one-day synthetic dataset. Set `ENERGYSENSE_DATA_DIR` and `ENERGYSENSE_REPORT_DIR` to change data/report locations.
+6. Run `python -m plant.generate --scenario S1 --seed 42` to generate the configured 70-day synthetic Parquet dataset under `data/generated/` when full analytics are needed.
+7. Run `python -m pytest` and `python -m ruff check .` to verify the current implementation.
+8. Run `python -m analytics.train --input data/generated --output models/analytics.joblib` to fit the normal-day anomaly model.
+9. Run `python -m eval.run --input data/generated --output reports/analytics` to produce forecasting, event-level anomaly, and root-cause report artifacts.
+10. Run `python -m policies.optimize --input data/generated --timestamp 2025-01-01T08:00:00+05:30 --output reports/optimizer/recommendations.json --mode human` to produce a recommendation plan from observable input files. It does not actuate controls.
+11. Run `python -m genai.cli --input reports/optimizer/recommendations.json --output reports/optimizer/explanations.json` for grounded explanations. The deterministic template works offline. Optional LLM use requires `LLM_PROVIDER`, `LLM_API_KEY`, `LLM_API_BASE_URL`, and `LLM_MODEL` environment variables.
+12. Run `python -m genai.report reports/analytics/analytics_report.json --output reports/end_of_day.md` to render a Markdown summary from results JSON.
+13. Run `python -m renderer.generate --minutes 10 --video data/generated/renderer/synthetic.mp4 --labels data/generated/renderer/labels.csv` to render a small labeled sample.
+14. Populate `data/clips/manifest.csv` with at least three videos and the documented columns, then run `python -m cv.ingest_clips --manifest data/clips/manifest.csv` to normalize clips and emit event Parquet.
+15. Run `python -m pytest`, `python -m ruff check .`, and `cd web && npm run build` for final checks.
 
-`make data`, `make train`, `make eval`, `make optimize`, `make explain`, `make report`, `make render`, and `make cv` invoke these steps where GNU Make is installed. `make cv` requires at least three videos listed in the clip manifest. Recommendation decisions are process-local proposals and no control actuation or production hosting is configured. Final deployment hardening and instructions should be updated after the dashboard and full evaluation phases.
+`make data`, `make train`, `make eval`, `make optimize`, `make explain`, `make report`, `make render`, and `make cv` invoke these steps where GNU Make is installed. `make cv` requires at least three videos listed in the clip manifest. For a separate-origin deployment, set `VITE_API_URL` at build time and configure API CORS. Production hosting, TLS, authentication, persistence, and operations are not configured. Recommendation decisions are process-local proposals and no control actuation is configured.
 
 ## Known limitations
 
@@ -62,4 +69,4 @@ The twin is simplified and uses synthetic telemetry. P2 remains a naive idle-dur
 
 ## Next phase
 
-Phase 8: build the React dashboard and connect its live floor, simulation, analytics, recommendations, impact report, and copilot views to the API. This is Phase 8 of 10 total phases (numbered 0–9).
+Phase 9: run the full held-out scenario/policy evaluation, compare learned and naive baselines, quantify predicted-versus-realized effects and failure cases, and finalize deployment guidance and limitations. There are 10 total phases, numbered 0–9.

@@ -4,7 +4,7 @@ EnergySense Twin is an offline-first prototype for exploring industrial energy w
 
 ## Project status
 
-Phases 0 through 7 are implemented. The ground-truth plant, calibrated twin, analytics, procedural video renderer, streaming CV pipeline, replay selection, constraint-checked recommendations, grounded explanations, offline copilot routing, JSON-driven reports, and local REST/WebSocket API are available. The dashboard and full policy evaluation remain planned phases.
+Phases 0 through 8 are implemented. The ground-truth plant, calibrated twin, analytics, procedural video renderer, streaming CV pipeline, replay selection, constraint-checked recommendations, grounded explanations, offline copilot routing, JSON-driven reports, local REST/WebSocket API, and React control-room dashboard are available. Full policy evaluation remains the final planned phase.
 
 ## Principles
 
@@ -41,5 +41,5 @@ make format
 make test
 ```
 
-See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [docs/phase_2.md](docs/phase_2.md), [docs/phase_3.md](docs/phase_3.md), [docs/phase_4.md](docs/phase_4.md), [docs/phase_5.md](docs/phase_5.md), [docs/phase_6.md](docs/phase_6.md), [docs/phase_7.md](docs/phase_7.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
+See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [docs/phase_2.md](docs/phase_2.md), [docs/phase_3.md](docs/phase_3.md), [docs/phase_4.md](docs/phase_4.md), [docs/phase_5.md](docs/phase_5.md), [docs/phase_6.md](docs/phase_6.md), [docs/phase_7.md](docs/phase_7.md), [docs/phase_8.md](docs/phase_8.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
 
