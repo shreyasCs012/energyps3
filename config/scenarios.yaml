@@ -1,0 +1,10 @@
+seed: 42
+cv_mode: simulated
+days: 70
+split: {train: 56, validation: 7, test: 7}
+scenarios:
+  S1: {name: normal_two_shift, weather_mean_c: 30, p_forget: 0.05}
+  S2: {name: idle_heavy, weather_mean_c: 30, p_forget: 0.35}
+  S3: {name: peak_stress, weather_mean_c: 38, demand_spike: true, tight_due_dates: true}
+  S4: {name: weekend_short_shift, weather_mean_c: 30, short_shift: true}
+

@@ -1,0 +1,8 @@
+# Illustrative placeholders from the supplied spec. Replace with cited utility data.
+currency: INR
+energy_inr_per_kwh: {off_peak: 6.0, normal: 7.5, peak: 9.5}
+peak_windows: ["09:00-12:00", "18:00-22:00"]
+demand_charge_inr_per_kw_month: 350
+grid_factor_kgco2_per_kwh: 0.71
+demand_charge_proration_days: 30
+

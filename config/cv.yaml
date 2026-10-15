@@ -1,0 +1,8 @@
+mode: simulated
+simulated_confusion_accuracy: 0.92
+temporal_flicker_probability: 0.03
+stream_hz: 1
+store_frames: false
+machine_rois: {}
+zone_rois: {}
+

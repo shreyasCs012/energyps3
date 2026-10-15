@@ -1,0 +1,62 @@
+{
+  "$defs": {
+    "ControlAction": {
+      "enum": [
+        "STANDBY",
+        "PRE_WARM",
+        "LIGHTS_OFF",
+        "HVAC_SETBACK",
+        "DEFER_JOB"
+      ],
+      "title": "ControlAction",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "command_id": {
+      "minLength": 1,
+      "title": "Command Id",
+      "type": "string"
+    },
+    "issued_at": {
+      "format": "date-time",
+      "title": "Issued At",
+      "type": "string"
+    },
+    "equipment_id": {
+      "minLength": 1,
+      "title": "Equipment Id",
+      "type": "string"
+    },
+    "action": {
+      "$ref": "#/$defs/ControlAction"
+    },
+    "duration_min": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Duration Min"
+    },
+    "rationale": {
+      "title": "Rationale",
+      "type": "string"
+    }
+  },
+  "required": [
+    "command_id",
+    "issued_at",
+    "equipment_id",
+    "action",
+    "rationale"
+  ],
+  "title": "ControlCommand",
+  "type": "object"
+}

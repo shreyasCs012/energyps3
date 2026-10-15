@@ -1,0 +1,8 @@
+mode: human
+horizon_minutes: 240
+replan_minutes: 5
+ensemble_seeds: 30
+max_concurrent_startups: 2
+peak_cap_kw: null
+co2_weight_inr_per_kg: 0.0
+

@@ -1,0 +1,58 @@
+{
+  "$defs": {
+    "EquipmentState": {
+      "enum": [
+        "OFF",
+        "STANDBY",
+        "WARMUP",
+        "IDLE",
+        "RUNNING",
+        "MAINTENANCE",
+        "FAULT"
+      ],
+      "title": "EquipmentState",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "timestamp": {
+      "format": "date-time",
+      "title": "Timestamp",
+      "type": "string"
+    },
+    "equipment_id": {
+      "minLength": 1,
+      "title": "Equipment Id",
+      "type": "string"
+    },
+    "power_kw": {
+      "minimum": 0,
+      "title": "Power Kw",
+      "type": "number"
+    },
+    "state": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/EquipmentState"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source": {
+      "default": "synthetic",
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "timestamp",
+    "equipment_id",
+    "power_kw"
+  ],
+  "title": "TelemetryPoint",
+  "type": "object"
+}

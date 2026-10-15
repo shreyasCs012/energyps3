@@ -1,0 +1,15 @@
+facility:
+  name: synthetic_one_bay
+  timezone: Asia/Kolkata
+  timestep_minutes: 1
+  meter_interval_minutes: 15
+  base_load_kw: 0.8
+machines:
+  - {id: CNC-01, type: cnc, p_run_kw: 6.5, p_idle_kw: 2.2, p_standby_kw: 0.4, warmup_min: 8, restart_kwh: 0.6, min_off_min: 10, min_on_min: 5, submetered: true}
+  - {id: CNC-02, type: cnc, p_run_kw: 7.5, p_idle_kw: 2.6, p_standby_kw: 0.4, warmup_min: 8, restart_kwh: 0.7, min_off_min: 10, min_on_min: 5, needs: [C2], submetered: false}
+  - {id: C2, type: compressor, p_run_kw: 6.2, p_idle_kw: 2.4, p_standby_kw: 0.2, warmup_min: 1, restart_kwh: 0.8, min_off_min: 5, min_on_min: 5, submetered: true}
+  - {id: CV1, type: conveyor, p_run_kw: 1.5, p_idle_kw: 1.1, p_standby_kw: 0.1, warmup_min: 0, restart_kwh: 0.02, min_off_min: 2, min_on_min: 1, submetered: false}
+  - {id: HP1, type: press, p_run_kw: 11.0, p_idle_kw: 3.5, p_standby_kw: 0.6, warmup_min: 20, restart_kwh: 1.8, min_off_min: 15, min_on_min: 10, needs: [C2], submetered: true}
+hvac: {setpoint_c: 24, thermal_cap_kw: 30, fan_kw: 1.5, thermal_capacity_mj_per_k: 18, ua_w_per_k: 900}
+lighting: {zones: [Z1, Z2, Z3], power_kw_each: 1.4, baseline_on: "05:30-22:30"}
+
