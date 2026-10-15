@@ -26,7 +26,7 @@ Phases 0 through 4 are implemented. This remains a synthetic-data prototype; no 
 - Phase 3: `python -m pytest` (20 passed), `python -m ruff check .`, `python -m ruff format --check .`, and `git diff --check` passed. Generated 5-day and 10-day Parquet smoke runs exercised report generation; training saved a serialized IsolationForest artifact.
 - Phase 4: `python -m pytest -q` (28 passed), `python -m ruff check .`, `python -m ruff format --check .` (54 files formatted), `git diff --check`, and one-minute renderer MP4/CSV smoke generation passed. Pytest reports one benign Windows `joblib` physical-core detection warning and falls back to logical cores.
 - GNU Make is not installed in the Windows environment, so Makefile targets were verified using their underlying commands.
-- Phase commits are pushed to `origin/main`: `4523d22 chore: scaffold EnergySense Twin project`, `7644918 feat: add seeded plant simulator and data generation`, `b287742 feat: add calibrated digital twin and baseline policies`, and Phase 3 `feat: add forecasting anomaly detection and evaluation harness`.
+- Phase commits are pushed to `origin/main`: `4523d22 chore: scaffold EnergySense Twin project`, `7644918 feat: add seeded plant simulator and data generation`, `b287742 feat: add calibrated digital twin and baseline policies`, `47f3c14 feat: add forecasting anomaly detection and evaluation harness`, and `11daab6 feat: add streaming CV and procedural replay pipeline`.
 
 ## Local run and deployment steps
 
@@ -50,4 +50,4 @@ The twin is simplified and uses synthetic telemetry. P2 is intentionally the nai
 
 ## Next phase
 
-Phase 5: implement the constrained optimizer, recommendation contracts, and safety/production constraint checks. Phase 4 commit: `feat: add streaming CV and procedural replay pipeline` (to be recorded after commit and push).
+Phase 5: implement the constrained optimizer, recommendation contracts, and safety/production constraint checks.
