@@ -46,6 +46,15 @@ class APIService:
             for key, value in config["scenarios"].items()
         ]
 
+    def tariff(self) -> dict[str, Any]:
+        config = yaml.safe_load(self.tariff_path.read_text(encoding="utf-8"))
+        return {
+            "currency": config.get("currency", "INR"),
+            "energy_inr_per_kwh": config["energy_inr_per_kwh"],
+            "peak_windows": config["peak_windows"],
+            "synthetic": True,
+        }
+
     def run(self, request: RunRequest) -> dict[str, Any]:
         known = {item["id"] for item in self.scenarios()}
         if request.scenario not in known:

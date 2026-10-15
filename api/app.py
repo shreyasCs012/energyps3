@@ -47,6 +47,10 @@ def create_app(service: APIService | None = None) -> FastAPI:
     def get_scenarios() -> list[dict[str, Any]]:
         return twin_service.scenarios()
 
+    @app.get("/tariff")
+    def get_tariff() -> Any:
+        return twin_service.tariff()
+
     @app.post("/run", response_model=RunResponse)
     def run_scenario(request: RunRequest) -> Any:
         return call(twin_service.run, request)
