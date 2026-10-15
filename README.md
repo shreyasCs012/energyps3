@@ -4,13 +4,13 @@ EnergySense Twin is an offline-first prototype for exploring industrial energy w
 
 ## Project status
 
-Phases 0 through 5 are implemented. The ground-truth plant, calibrated twin, analytics, procedural video renderer, streaming CV pipeline, replay selection, and constraint-checked rolling-horizon recommendations are available. GenAI explanations, API, dashboard, and full policy evaluation remain planned phases.
+Phases 0 through 6 are implemented. The ground-truth plant, calibrated twin, analytics, procedural video renderer, streaming CV pipeline, replay selection, constraint-checked recommendations, grounded explanations, offline copilot routing, and JSON-driven Markdown report generation are available. The API, dashboard, and full policy evaluation remain planned phases.
 
 ## Principles
 
 - Plant ground truth and twin estimates are separate; the twin consumes telemetry and never reads plant internals.
 - Runs are seeded and deterministic where applicable. All generated data is synthetic and all savings are simulation-based projections.
-- The core demo is designed to work offline without a GPU or LLM key. Optional CV/LLM upgrades will have deterministic fallbacks.
+- The core demo is designed to work offline without a GPU or LLM key. CV and LLM use deterministic fallbacks; numeric claims in LLM explanations are checked against structured inputs.
 - Tariffs and grid emissions are configurable illustrative assumptions, not sourced utility rates. Cite and replace them for a real deployment.
 - Evaluation must include baselines, held-out days, prediction-versus-realized results, and reported failures.
 
@@ -41,5 +41,5 @@ make format
 make test
 ```
 
-See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [docs/phase_2.md](docs/phase_2.md), [docs/phase_3.md](docs/phase_3.md), [docs/phase_4.md](docs/phase_4.md), [docs/phase_5.md](docs/phase_5.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
+See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [docs/phase_2.md](docs/phase_2.md), [docs/phase_3.md](docs/phase_3.md), [docs/phase_4.md](docs/phase_4.md), [docs/phase_5.md](docs/phase_5.md), [docs/phase_6.md](docs/phase_6.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
 
