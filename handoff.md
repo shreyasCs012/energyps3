@@ -2,7 +2,7 @@
 
 ## Current state
 
-Phases 0 through 3 are implemented. This remains a synthetic-data prototype; no real facility data or validated savings claims are included.
+Phases 0 through 4 are implemented. This remains a synthetic-data prototype; no real facility data or validated savings claims are included.
 
 ## Work completed
 
@@ -14,7 +14,9 @@ Phases 0 through 3 are implemented. This remains a synthetic-data prototype; no 
 - Added the separate observable-input twin estimator, snapshot builder, least-squares machine/thermal calibration, simplified simulation, ensemble and common-random-number what-if interfaces, plus P0–P2 policies.
 - Added day-safe 15-minute forecasting and naive/seasonal/moving-average baselines, IsolationForest and state-conditional residual anomaly scoring, a threshold-alert comparator, waste/root-cause rules and RandomForest classifier.
 - Added a train/evaluation CLI that writes model artifacts and test-split reports, plus Phase 3 coverage in `docs/phase_3.md`.
-- Captured assumptions in `ASSUMPTIONS.md`; phase records are in `docs/phase_0.md` through `docs/phase_3.md`.
+- Added a 960×540 procedural top-down renderer with video and frame-label output; streaming video decode, common clip normalization, ROI motion/HSV/brightness features, temporal hysteresis, rule and RandomForest machine state classification, zone light detection, and YOLO/HOG people detection.
+- Added source-clip manifest validation and splitting, deterministic training-only appearance augmentation, held-out CV reports, and state-matched replay clip offsets with renderer fallback.
+- Captured assumptions in `ASSUMPTIONS.md`; phase records are in `docs/phase_0.md` through `docs/phase_4.md`.
 
 ## Verification and commits
 
@@ -22,6 +24,7 @@ Phases 0 through 3 are implemented. This remains a synthetic-data prototype; no 
 - Phase 1: `python -m pytest` (10 passed), Ruff, and two-day simulated-CV Parquet smoke generation passed.
 - Phase 2: `python -m pytest` (15 passed), `python -m ruff check .`, `python -m ruff format --check .`, and `git diff --check` passed.
 - Phase 3: `python -m pytest` (20 passed), `python -m ruff check .`, `python -m ruff format --check .`, and `git diff --check` passed. Generated 5-day and 10-day Parquet smoke runs exercised report generation; training saved a serialized IsolationForest artifact.
+- Phase 4: `python -m pytest -q` (28 passed), `python -m ruff check .`, `python -m ruff format --check .` (54 files formatted), `git diff --check`, and one-minute renderer MP4/CSV smoke generation passed. Pytest reports one benign Windows `joblib` physical-core detection warning and falls back to logical cores.
 - GNU Make is not installed in the Windows environment, so Makefile targets were verified using their underlying commands.
 - Phase commits are pushed to `origin/main`: `4523d22 chore: scaffold EnergySense Twin project`, `7644918 feat: add seeded plant simulator and data generation`, `b287742 feat: add calibrated digital twin and baseline policies`, and Phase 3 `feat: add forecasting anomaly detection and evaluation harness`.
 
@@ -30,19 +33,21 @@ Phases 0 through 3 are implemented. This remains a synthetic-data prototype; no 
 No production deployment is available at this checkpoint. For local synthetic generation and checks on a machine with Python 3.11+:
 
 1. Clone the repository and enter its root.
-2. Run `python -m pip install -e ".[dev]"` to install the simulator, PyArrow, scikit-learn, tests, and lint dependencies.
+2. Run `python -m pip install -e ".[dev,api,cv]"` to install the simulator, scikit-learn, Pillow, PyAV, OpenCV HOG, tests, and lint dependencies.
 3. Run `python -m plant.generate --scenario S1 --seed 42` to generate the 70-day synthetic Parquet dataset under `data/generated/`.
 4. Run `python -m pytest` and `python -m ruff check .` to verify the current implementation.
 5. Run `python -m analytics.train --input data/generated --output models/analytics.joblib` to fit the normal-day anomaly model.
 6. Run `python -m eval.run --input data/generated --output reports/analytics` to produce the forecasting, event-level anomaly, and root-cause report artifacts.
-7. Run `python -m pytest` and `python -m ruff check .` for final checks.
+7. Run `python -m renderer.generate --minutes 10 --video data/generated/renderer/synthetic.mp4 --labels data/generated/renderer/labels.csv` to render a small labeled sample.
+8. Populate `data/clips/manifest.csv` with at least three clips and the documented columns, then run `python -m cv.ingest_clips --manifest data/clips/manifest.csv` to normalize clips and emit event Parquet.
+9. Run `python -m pytest` and `python -m ruff check .` for final checks.
 
-`make data`, `make train`, and `make eval` invoke these steps where GNU Make is installed. `make demo` remains a future-phase target. There is no production hosting configuration, API, database, or real-facility integration yet. Final deployment steps must be updated after the API and dashboard phases.
+`make data`, `make train`, `make eval`, `make render`, and `make cv` invoke these steps where GNU Make is installed. `make cv` requires at least three videos listed in the clip manifest. `make demo` remains a future-phase target. There is no production hosting configuration, API, database, or real-facility integration yet. Final deployment steps must be updated after the API and dashboard phases.
 
-## Known Phase 2 limits
+## Known limitations
 
-The twin is simplified and uses synthetic telemetry. P2 is intentionally the naive idle-duration shutdown policy; break-even, dependency, warm-up, and minimum on/off constraints belong to the optimizer phase. The analytics smoke run shows that baseline models can outperform the learned forecast at some horizons and that anomaly/root-cause rules miss labeled events. The report keeps those results visible. Forecast weather is omitted until forecast inputs are modeled.
+The twin is simplified and uses synthetic telemetry. P2 is intentionally the naive idle-duration shutdown policy; break-even, dependency, warm-up, and minimum on/off constraints belong to the optimizer phase. The analytics smoke run shows that baseline models can outperform the learned forecast at some horizons and that anomaly/root-cause rules miss labeled events. CV state classification is a heuristic prototype and needs clip-specific evaluation/calibration. The report keeps failures visible. Forecast weather is omitted until forecast inputs are modeled. There are no real or AI-generated clips in the repository, production CV ROIs require camera-specific calibration, and replay currently returns clip offsets/crossfade metadata for a later UI/API to composite.
 
 ## Next phase
 
-Phase 4: implement video CV, procedural rendering, clip ingestion, and replay while keeping train/validation/test splits grouped by source clip.
+Phase 5: implement the constrained optimizer, recommendation contracts, and safety/production constraint checks. Phase 4 commit: `feat: add streaming CV and procedural replay pipeline` (to be recorded after commit and push).

@@ -9,5 +9,9 @@
 - Phase 3 walk-forward scoring uses 15-minute origins and 1–6 hour horizons. Weather is omitted from forecast evaluation until a forecast input exists; schedule is treated as known future information.
 - Phase 3's RandomForest root-cause classifier is fit on labeled validation-day events. Its five-class report is evaluated on separate test days, and any absent class or poor result remains visible in the report.
 - Small smoke datasets may have zero validation days when proportional day allocation rounds to zero; the configured 70-day dataset retains the specified 56/7/7 split.
-- Phase checkpoints are applied in the order requested by the master spec. The current checkpoint is Phase 3.
+- Phase 4 transcodes source clips to MPEG-4 at a fixed resolution, cadence, bitrate, and deterministic grain before streaming features; decoded frames are never written to disk.
+- CV source clips are split by clip ID before training-only augmentations. YOLO requires caller-supplied weights to prevent implicit downloads; OpenCV HOG is the offline people detector fallback.
+- The procedural renderer uses plant truth only as a labeled synthetic video source. Those labels remain outside the twin input path.
+- Replay selection returns looping clip offsets and crossfade metadata; actual compositing is left to a future replay UI/API.
+- Phase checkpoints are applied in the order requested by the master spec. The current checkpoint is Phase 4.
 

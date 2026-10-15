@@ -4,7 +4,7 @@ EnergySense Twin is an offline-first prototype for exploring industrial energy w
 
 ## Project status
 
-Phases 0 through 3 are implemented. The ground-truth plant, seeded data pipeline, separate state estimator and calibrated twin, forecasting, anomaly scoring, waste/root-cause rules, and day-split analytics evaluation are available. Real-video CV, optimization, API, dashboard, and full policy evaluation remain planned phases.
+Phases 0 through 4 are implemented. The ground-truth plant, calibrated twin, analytics, procedural video renderer, streaming CV event pipeline, clip ingestion, and replay clip selection are available. Optimization, API, dashboard, and full policy evaluation remain planned phases.
 
 ## Principles
 
@@ -25,7 +25,7 @@ make test
 make schema
 ```
 
-`make data` generates the configured 70-day synthetic dataset into `data/generated/` using seed 42 and simulated CV events. Run `make train` to fit normal-day analytics artifacts and `make eval` to produce forecast, anomaly, and root-cause reports under `reports/analytics/`. Override generation options with `python -m plant.generate --help`. Phase 2 APIs are Python modules under `twin/` and policies under `policies/`. Forecasting, anomaly scoring, and waste classification are in `analytics/`.
+`make data` generates the configured 70-day synthetic dataset into `data/generated/` using seed 42 and simulated CV events. Run `make train` and `make eval` for analytics, `make render` for a procedural MP4 plus labels, and `make cv` after adding at least three source videos to `data/clips/manifest.csv`. CV normalizes each source clip and emits events without saving intermediate frames. Override generation options with `python -m plant.generate --help`. Analytics are in `analytics/`, CV in `cv/`, rendering in `renderer/`, and replay selection in `replay/`.
 
 The plant data keeps meter readings for non-submetered equipment unavailable. `state_true` and `operator_present_true` are retained as evaluation-only fields; downstream twin input code must explicitly exclude them.
 
@@ -41,5 +41,5 @@ make format
 make test
 ```
 
-See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [docs/phase_2.md](docs/phase_2.md), [docs/phase_3.md](docs/phase_3.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
+See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [docs/phase_2.md](docs/phase_2.md), [docs/phase_3.md](docs/phase_3.md), [docs/phase_4.md](docs/phase_4.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
 

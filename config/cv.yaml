@@ -3,6 +3,31 @@ simulated_confusion_accuracy: 0.92
 temporal_flicker_probability: 0.03
 stream_hz: 1
 store_frames: false
-machine_rois: {}
-zone_rois: {}
+machine_rois:
+  CNC-01: {x: 0.0, y: 0.0, width: 1.0, height: 1.0}
+  CNC-02: {x: 0.0, y: 0.0, width: 1.0, height: 1.0}
+  C2: {x: 0.0, y: 0.0, width: 1.0, height: 1.0}
+  CV1: {x: 0.0, y: 0.0, width: 1.0, height: 1.0}
+  HP1: {x: 0.0, y: 0.0, width: 1.0, height: 1.0}
+zone_rois:
+  Z1: {x: 0.0, y: 0.0, width: 1.0, height: 1.0}
+  Z2: {x: 0.0, y: 0.0, width: 1.0, height: 1.0}
+  Z3: {x: 0.0, y: 0.0, width: 1.0, height: 1.0}
+station_rois: {}
+classifier:
+  motion_energy: 0.045
+  run_color_fraction: 0.025
+  idle_color_fraction: 0.025
+  fault_color_fraction: 0.025
+  standby_brightness: 0.12
+smoothing_window: 5
+smoothing_votes: 3
+light_threshold: 0.52
+augmentation:
+  enabled: true
+normalization:
+  fps: 10
+  resolution: [640, 360]
+  bitrate: 1200000
+  synthetic_grain_sigma: 0.8
 

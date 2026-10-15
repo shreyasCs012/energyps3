@@ -1,7 +1,7 @@
-.PHONY: setup data train eval demo test lint format schema clean
+.PHONY: setup data train eval render cv demo test lint format schema clean
 
 setup:
-	python -m pip install -e ".[dev,api]"
+	python -m pip install -e ".[dev,api,cv]"
 
 data:
 	python -m plant.generate --config config/facility.yaml --scenario S1 --seed 42
@@ -11,6 +11,12 @@ train:
 
 eval:
 	python -m eval.run --input data/generated --output reports/analytics --config config/facility.yaml
+
+render:
+	python -m renderer.generate
+
+cv:
+	python -m cv.ingest_clips --manifest data/clips/manifest.csv
 
 demo:
 	python -m api.app
