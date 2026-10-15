@@ -8,6 +8,7 @@ from typing import Annotated, Any
 
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from fastapi.encoders import jsonable_encoder
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.service import APIService
 from contracts.models import (
@@ -31,6 +32,16 @@ def create_app(service: APIService | None = None) -> FastAPI:
     report_dir = Path(os.getenv("ENERGYSENSE_REPORT_DIR", "reports/api"))
     twin_service = service or APIService(data_dir, report_dir)
     app = FastAPI(title="EnergySense Twin API", version="0.1.0")
+    origins = os.getenv(
+        "ENERGYSENSE_CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173",
+    )
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[origin.strip() for origin in origins.split(",") if origin.strip()],
+        allow_methods=["GET", "POST", "OPTIONS"],
+        allow_headers=["Content-Type"],
+    )
     app.state.twin_service = twin_service
 
     def call(operation, *args, **kwargs):

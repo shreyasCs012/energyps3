@@ -31,10 +31,11 @@ def test_scenarios_kpis_forecast_anomalies_and_cv_events(client):
     assert scenarios.status_code == 200
     assert {item["id"] for item in scenarios.json()} == {"S1", "S2", "S3", "S4"}
 
-    tariff = client.get("/tariff")
+    tariff = client.get("/tariff", headers={"Origin": "http://localhost:5173"})
     assert tariff.status_code == 200
     assert tariff.json()["synthetic"] is True
     assert tariff.json()["energy_inr_per_kwh"]["peak"] == 9.5
+    assert tariff.headers["access-control-allow-origin"] == "http://localhost:5173"
 
     kpis = client.get("/kpis")
     assert kpis.status_code == 200
