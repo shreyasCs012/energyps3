@@ -2,7 +2,7 @@
 
 ## Current state
 
-Phases 0 through 8 are implemented; Phase 9 is the final planned phase. This remains a synthetic-data prototype; no real facility data or validated savings claims are included.
+Phases 0 through 9 are implemented; Phase 9 is the final planned phase. This remains a synthetic-data prototype; no real facility data or validated savings claims are included.
 
 ## Work completed
 
@@ -21,6 +21,7 @@ Phases 0 through 8 are implemented; Phase 9 is the final planned phase. This rem
 - Added Phase 6 grounded template and optional LLM recommendation explanations, numeric validation with safe template fallback, allowlisted copilot tool routing with an offline regex path, results JSON to Markdown report generation, contracts, schemas, TypeScript types, and Makefile targets.
 - Added Phase 7 FastAPI REST endpoints for scenarios, runs, KPIs, recommendation decisions, what-if, forecast, anomaly alerts, CV events, reports, and copilot. Added a controllable WebSocket replay for estimated twin state, meter and CV events, recommendations, speed, pause, seek, policy, and scenario selection.
 - Added Phase 8 responsive React control-room dashboard views for live floor/replay, twin comparison, recommendation review, analytics, impact report, and copilot. Wired the UI to REST/WebSocket routes, exposed configured tariff assumptions, added a Vite development proxy, and added an environment-configured CORS origin allowlist for separate-origin deployments.
+- Added Phase 9 paired ground-truth command replay with common random numbers, P0–P3 policy comparisons across held-out scenarios, per-trial and paired confidence summaries, predicted-versus-realized reporting, analytics baselines, CV confusion matrices, and controlled no-CV/100%/92%/80% planner-input ablations. Added a preloaded S2 demo cache and 30× replay default. Root-cause feature generation now vectorizes per-machine schedule windows to support campaign-scale evaluation.
 - Captured assumptions in `ASSUMPTIONS.md`; phase records are in `docs/phase_0.md` through `docs/phase_8.md`.
 
 ## Verification and commits
@@ -34,12 +35,13 @@ Phases 0 through 8 are implemented; Phase 9 is the final planned phase. This rem
 - Phase 6: `python -m pytest -q` (47 passed, one benign Windows `joblib` warning), `python -m ruff check .`, `python -m ruff format --check .` (68 files formatted), `python -m contracts.export_schema`, `git diff --check`, and an end-to-end optimizer → explanation → Markdown report smoke run passed. The optional live LLM provider was not called. Feature commit: `1ee2974 feat: add grounded GenAI explanations and copilot`.
 - Phase 7: `python -m pytest -q` (53 passed; Starlette TestClient/httpx deprecation and benign Windows `joblib` warnings), `python -m ruff check .`, `python -m ruff format --check .` (72 files formatted), `python -m contracts.export_schema`, `git diff --check`, and `npm run build` in `web/` passed. API tests cover REST contracts, run/what-if, copilot, reports, proposal decisions, validation errors, and WebSocket pause/seek/replay. Feature commit: `01a7631 feat: add EnergySense REST and replay API`.
 - Phase 8: `npm run build` in `web/` passed; `python -m pytest -q` (53 passed, including the CORS origin assertion, with the same two environment/library warnings), `python -m ruff check .`, `python -m ruff format --check .` (73 files), and `git diff --check` passed. Local API smoke generated S2 / seed 42 / one synthetic day and successfully queried KPIs, a four-point forecast, and Markdown report. The temporary Vite port was not reachable from the browser harness, so UI interaction was not browser-verified. Vite notes the minified JS chunk exceeds 500 kB.
+- Phase 9: Full campaign completed in 602.65 seconds: 320 paired policy trials (S1–S4 × 20 seeds × P0–P3), four scenario analytics evaluations, 576,000 simulated CV state observations, policy KPI means/paired 95% confidence intervals, forecast/anomaly/root-cause baselines, predicted-versus-realized comparison, and no-CV/100%/92%/80% planner-input ablations. `python -m pytest -q` (57 passed, with the same Starlette/httpx and Windows joblib warnings), `ruff check .`, `ruff format --check .` (79 files), `git diff --check`, and `npm run build` passed. `python -m api.demo_cache` precomputed S2 / seed 42 / one simulated day; direct service smoke served cached KPIs, recommendations, forecast, CV events, and report. The browser harness still could not reach the temporary Vite port; frontend verification is the production build.
 - GNU Make is not installed in the Windows environment, so Makefile targets were verified using their underlying commands.
 - Phase commits are pushed to `origin/main`: `4523d22 chore: scaffold EnergySense Twin project`, `7644918 feat: add seeded plant simulator and data generation`, `b287742 feat: add calibrated digital twin and baseline policies`, `47f3c14 feat: add forecasting anomaly detection and evaluation harness`, `11daab6 feat: add streaming CV and procedural replay pipeline`, `a8175d9 feat: add constrained optimizer recommendations`, Phase 6 `1ee2974 feat: add grounded GenAI explanations and copilot`, and Phase 7 `01a7631 feat: add EnergySense REST and replay API`.
 
 ## Phase commits
 
-Phase 0–7 commits are pushed to `origin/main`: `4523d22 chore: scaffold EnergySense Twin project`, `7644918 feat: add seeded plant simulator and data generation`, `b287742 feat: add calibrated digital twin and baseline policies`, `47f3c14 feat: add forecasting anomaly detection and evaluation harness`, `11daab6 feat: add streaming CV and procedural replay pipeline`, `a8175d9 feat: add constrained optimizer recommendations`, `1ee2974 feat: add grounded GenAI explanations and copilot`, and `01a7631 feat: add EnergySense REST and replay API`. Phase 8 commits: `da115ec feat: build EnergySense control room dashboard`, `8c9f9fc feat: configure dashboard API deployment origins`, and `9b698ae docs: record Phase 8 dashboard checkpoint`.
+Phase 0–7 commits are pushed to `origin/main`: `4523d22 chore: scaffold EnergySense Twin project`, `7644918 feat: add seeded plant simulator and data generation`, `b287742 feat: add calibrated digital twin and baseline policies`, `47f3c14 feat: add forecasting anomaly detection and evaluation harness`, `11daab6 feat: add streaming CV and procedural replay pipeline`, `a8175d9 feat: add constrained optimizer recommendations`, `1ee2974 feat: add grounded GenAI explanations and copilot`, and `01a7631 feat: add EnergySense REST and replay API`. Phase 8 commits: `da115ec feat: build EnergySense control room dashboard`, `8c9f9fc feat: configure dashboard API deployment origins`, and `9b698ae docs: record Phase 8 dashboard checkpoint`. Phase 9 commits will be recorded here after push.
 
 ## Local run and deployment steps
 
@@ -47,10 +49,10 @@ No production deployment is available at this checkpoint. For local synthetic ge
 
 1. Clone the repository and enter its root.
 2. Run `python -m pip install -e ".[dev,api,cv]"` to install the simulator, API, tests, and lint dependencies.
-3. Start the local API with `uvicorn api.app:app --host 127.0.0.1 --port 8000` (or `make demo`) and open `http://127.0.0.1:8000/docs`.
+3. For the preloaded offline demo, run `python -m api.demo_cache` once (or `make demo-cache`) to generate the synthetic S2/seed-42 cache, then run `python -m api.demo` (or `make demo`) and open `http://127.0.0.1:8000/docs`. The UI replay starts at 30×. To launch an empty API without preloading, use `uvicorn api.app:app --host 127.0.0.1 --port 8000`.
 4. In another terminal, run `cd web`, `npm install`, and `npm run dev`; open the Vite URL (normally `http://localhost:5173`). Its development proxy forwards REST and WebSocket requests to the API.
 5. Select a scenario and click **Run simulation**. The dashboard calls `POST /run` to create a one-day synthetic dataset. Set `ENERGYSENSE_DATA_DIR` and `ENERGYSENSE_REPORT_DIR` to change data/report locations.
-6. Run `python -m plant.generate --scenario S1 --seed 42` to generate the configured 70-day synthetic Parquet dataset under `data/generated/` when full analytics are needed.
+6. Run `python -m plant.generate --scenario S1 --seed 42` to generate the configured 70-day synthetic Parquet dataset under `data/generated/` when full analytics are needed. Run `python -m eval.campaign --output results --scenarios S1 S2 S3 S4 --seeds 20 --optimizer-seeds 3` (or `make eval`) for the final paired policy campaign. The earlier analytics-only runner remains available as `make eval-analytics`.
 7. Run `python -m pytest` and `python -m ruff check .` to verify the current implementation.
 8. Run `python -m analytics.train --input data/generated --output models/analytics.joblib` to fit the normal-day anomaly model.
 9. Run `python -m eval.run --input data/generated --output reports/analytics` to produce forecasting, event-level anomaly, and root-cause report artifacts.
@@ -67,6 +69,6 @@ No production deployment is available at this checkpoint. For local synthetic ge
 
 The twin is simplified and uses synthetic telemetry. P2 remains a naive idle-duration shutdown baseline; Phase 5 checks break-even, dependencies, warm-up, and minimum on/off timing before recommending actions. The analytics smoke run shows that baseline models can outperform the learned forecast at some horizons and that anomaly/root-cause rules miss labeled events. The API serves an explicitly labeled moving-average forecast and threshold anomaly baseline; decisions are process-local and non-actuating. CV state classification is a heuristic prototype and needs clip-specific evaluation/calibration. The optimizer's solver-free job shifting uses a 15-minute feasible-slot search rather than CP-SAT and requires broader scenario evaluation. Forecast weather is represented by configured forecast perturbations, not a live forecast feed. There are no real or AI-generated clips in the repository, production CV ROIs require camera-specific calibration, and replay streams estimated state and events without video compositing.
 
-## Next phase
+## Final phase status
 
-Phase 9: run the full held-out scenario/policy evaluation, compare learned and naive baselines, quantify predicted-versus-realized effects and failure cases, and finalize deployment guidance and limitations. There are 10 total phases, numbered 0–9.
+Phase 9 is the final planned phase; the project has 10 total phases, numbered 0–9. The final campaign metrics, ablations, limitations, and deployment guidance are recorded in [docs/phase_9.md](docs/phase_9.md) and [reports/results.md](reports/results.md). Exact Phase 9 verification results and commit IDs are listed below.

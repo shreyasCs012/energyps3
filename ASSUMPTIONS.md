@@ -17,11 +17,12 @@
 - Phase 5 recommendations are proposals only. The CLI exports JSON and does not actuate the plant; human approval/apply flow belongs to the API/dashboard phases.
 - Phase 6 defaults to deterministic local explanations. Optional LLM calls use an OpenAI-compatible chat-completions endpoint configured by environment variables; output is only accepted when it passes the explanation contract and numeric grounding check. Provider-specific APIs may need a small adapter.
 - Copilot tool implementations are injected callbacks so the core package stays offline and independent of API lifecycle; Phase 7 wires them to local twin and analytics services.
-- The general Phase 6 Markdown report preserves supplied JSON values and does not infer missing metrics; the full multi-policy evaluation report is Phase 9 work.
+- The general Phase 6 Markdown report preserves supplied JSON values and does not infer missing metrics; Phase 9 adds a separate paired policy and analytics campaign report.
 - Phase 7 API runs create seeded synthetic data under `data/generated/api_runs/`; their requested day count is explicit and defaults to one for interactive use.
 - Phase 7 forecasts use a clearly labeled last-four-meter-interval moving average and anomaly alerts use the transparent threshold baseline until a live model serving interface is added.
 - Recommendation apply/reject/schedule decisions are in-memory workflow records only. They issue no simulator or facility controls and are lost on process restart.
 - The initial API is loopback-only local software without authentication or persistent API state. A production deployment requires later security, storage, and hosting decisions.
 - The optimizer uses paired seeded twin projections with state-confidence and weather forecast perturbations. Projected KPI fields are baseline-minus-action deltas: positive values indicate savings/improvement and negative values indicate a projected increase.
-- Phase checkpoints are applied in the order requested by the master spec. The current checkpoint is Phase 7 of 10 phases (0–9).
+- Phase 9 evaluates four synthetic scenarios across 20 paired seeds each; the optimizer uses a three-seed projection ensemble to keep campaign runtime practical, while standalone optimizer defaults remain unchanged.
+- Phase checkpoints are applied in the order requested by the master spec. Phase 9 is the final checkpoint: 10 total phases numbered 0–9.
 
