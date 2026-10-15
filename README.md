@@ -4,7 +4,7 @@ EnergySense Twin is an offline-first prototype for exploring industrial energy w
 
 ## Project status
 
-Phases 0 through 6 are implemented. The ground-truth plant, calibrated twin, analytics, procedural video renderer, streaming CV pipeline, replay selection, constraint-checked recommendations, grounded explanations, offline copilot routing, and JSON-driven Markdown report generation are available. The API, dashboard, and full policy evaluation remain planned phases.
+Phases 0 through 7 are implemented. The ground-truth plant, calibrated twin, analytics, procedural video renderer, streaming CV pipeline, replay selection, constraint-checked recommendations, grounded explanations, offline copilot routing, JSON-driven reports, and local REST/WebSocket API are available. The dashboard and full policy evaluation remain planned phases.
 
 ## Principles
 
@@ -25,7 +25,7 @@ make test
 make schema
 ```
 
-`make data` generates the configured 70-day synthetic dataset into `data/generated/` using seed 42 and simulated CV events. Run `make train` and `make eval` for analytics, `make optimize` to write constraint-checked recommendations under `reports/optimizer/`, `make render` for a procedural MP4 plus labels, and `make cv` after adding at least three source videos to `data/clips/manifest.csv`. CV normalizes each source clip and emits events without saving intermediate frames. Override generation options with `python -m plant.generate --help`; run `python -m policies.optimize --help` for optimizer inputs and mode options. Analytics are in `analytics/`, CV in `cv/`, rendering in `renderer/`, replay selection in `replay/`, and recommendation planning in `policies/optimizer.py`.
+`make data` generates the configured 70-day synthetic dataset into `data/generated/` using seed 42 and simulated CV events. Run `make train` and `make eval` for analytics, `make optimize` to write constraint-checked recommendations under `reports/optimizer/`, `make explain` for grounded recommendation explanations, `make report` for Markdown from results JSON, `make render` for a procedural MP4 plus labels, and `make cv` after adding at least three source videos to `data/clips/manifest.csv`. CV normalizes each source clip and emits events without saving intermediate frames. Run `make demo` (or `uvicorn api.app:app --reload`) to start the local API at `http://127.0.0.1:8000`; call `POST /run` to generate a one-day synthetic dataset, then explore the API docs at `/docs`. Override generation options with `python -m plant.generate --help`; run `python -m policies.optimize --help` for optimizer inputs and mode options. Analytics are in `analytics/`, API in `api/`, CV in `cv/`, rendering in `renderer/`, replay selection in `replay/`, and recommendation planning in `policies/optimizer.py`.
 
 The plant data keeps meter readings for non-submetered equipment unavailable. `state_true` and `operator_present_true` are retained as evaluation-only fields; downstream twin input code must explicitly exclude them.
 
@@ -41,5 +41,5 @@ make format
 make test
 ```
 
-See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [docs/phase_2.md](docs/phase_2.md), [docs/phase_3.md](docs/phase_3.md), [docs/phase_4.md](docs/phase_4.md), [docs/phase_5.md](docs/phase_5.md), [docs/phase_6.md](docs/phase_6.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
+See [docs/phase_0.md](docs/phase_0.md), [docs/phase_1.md](docs/phase_1.md), [docs/phase_2.md](docs/phase_2.md), [docs/phase_3.md](docs/phase_3.md), [docs/phase_4.md](docs/phase_4.md), [docs/phase_5.md](docs/phase_5.md), [docs/phase_6.md](docs/phase_6.md), [docs/phase_7.md](docs/phase_7.md), [ASSUMPTIONS.md](ASSUMPTIONS.md), and [handoff.md](handoff.md) for current status and next steps.
 
